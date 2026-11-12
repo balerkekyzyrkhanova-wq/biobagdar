@@ -3,6 +3,8 @@ import {onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPa
 import {collection, doc, getDoc, getDocs, query, where, orderBy, setDoc, addDoc, updateDoc, writeBatch, serverTimestamp, increment, Timestamp} from 'firebase/firestore';
 import {auth, db, configured} from './firebase';
 import xylem from '../content/xylem.json';
+import {TeacherAnalytics, MyAnalysis} from './Analytics';
+import {topicStats} from './analytics';
 import {Ctx, Trainer, BankAttemptsList, vTitle, fmtDate} from './Olympiad';
 import {ALL_ITEMS, EXCLUDED, VARIANTS, STAGE_NAME, itemsOf, maxOf, meta} from './bankdata';
 import {Results, badgesOf} from './Results';
@@ -49,9 +51,11 @@ function Auth() {
 }
 
 function Student({uid, prof, reload}: any) {
-  const [code, setCode] = useState(''), [as, setAs] = useState<any[]>([]), [at, setAt] = useState<any[]>([]), [w, setW] = useState<any>(null), [err, setErr] = useState(''), [showD, setShowD] = useState(false), [showT, setShowT] = useState(false), [showTopic, setShowTopic] = useState(false), [showR, setShowR] = useState(false), [ba, setBa] = useState<any[]>([]), [pf, setPf] = useProfile();
+  const [code, setCode] = useState(''), [as, setAs] = useState<any[]>([]), [at, setAt] = useState<any[]>([]), [w, setW] = useState<any>(null), [err, setErr] = useState(''), [showD, setShowD] = useState(false), [showT, setShowT] = useState(false), [showTopic, setShowTopic] = useState(false), [showR, setShowR] = useState(false), [ba, setBa] = useState<any[]>([]), [bk, setBk] = useState<any>({}), [note, setNote] = useState<any>(null), [pf, setPf] = useProfile();
   const refresh = async () => {
     try { setBa(mk((await getDocs(query(collection(db, 'bankAttempts'), where('studentId', '==', uid)))).docs).sort((x: any, y: any) => (y.createdAt?.seconds || 0) - (x.createdAt?.seconds || 0))); } catch { setBa([]); }
+    try { const k: any = {}; (await getDocs(collection(db, 'bankKeys'))).docs.forEach(d => { k[d.id] = d.data().answer; }); setBk(k); } catch {}
+    try { const n = await getDoc(doc(db, 'analyses', uid)); setNote(n.exists() ? n.data() : null); } catch { setNote(null); }
     if (!prof.groupId) return;
     setAs(mk((await getDocs(query(collection(db, 'assignments'), where('groupId', '==', prof.groupId)))).docs));
     const t = await getDocs(query(collection(db, 'attempts'), where('studentId', '==', uid)));
@@ -71,7 +75,7 @@ function Student({uid, prof, reload}: any) {
   if (!prof.groupId) return <div style={card}><h2>Присоединиться к группе</h2><input placeholder="Код группы" value={code} onChange={e => setCode(e.target.value)}/><button onClick={join}>Войти в группу</button><div>{err}</div></div>;
   if (w) return <Work a={w} uid={uid} prof={prof} onDone={() => { setW(null); refresh(); }}/>;
   if (showTopic) return <><Owl text={OWL.topic}/><Topic onBack={() => setShowTopic(false)}/></>;
-  if (showR) return <Results as={as} at={at} ba={ba} onBack={() => setShowR(false)}/>;
+  if (showR) return <Results as={as} at={at} ba={ba} analysis={<MyAnalysis stats={topicStats(ba, id => bk[id], at)} note={note}/>} onBack={() => setShowR(false)}/>;
   if (showT) return <Trainer uid={uid} prof={prof} onBack={() => { setShowT(false); refresh(); }}/>;
   if (showD) return <Diary uid={uid} as={as} at={at} onBack={() => setShowD(false)}/>;
   const nErr = Object.values(at.reduce((m: any, t: any) => { if (Array.isArray(t.wrong) && (!m[t.assignmentId] || m[t.assignmentId].n < t.n)) m[t.assignmentId] = t; return m; }, {})).reduce((n: number, t: any) => n + t.wrong.length, 0);
@@ -256,6 +260,7 @@ function Teacher({uid}: any) {
     <div style={card}><button onClick={() => act(seed, 'Задания загружены')}>Загрузить задания (тема «xylem»)</button></div>
     <BankAdmin/>
     <BankResults/>
+    <TeacherAnalytics/>
     <div style={card}><input placeholder="Название группы" value={name} onChange={e => setName(e.target.value)}/><button onClick={() => act(group, 'Группа создана')}>Создать группу</button>{gs.map(g => <div key={g.id}>{g.name}: код <b>{g.code}</b></div>)}</div>
     <div style={card}><select value={f.groupId} onChange={e => setF({...f, groupId: e.target.value})}><option value="">Группа</option>{gs.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}</select>
       <input type="date" value={f.due} onChange={e => setF({...f, due: e.target.value})}/><select value={f.mode} onChange={e => setF({...f, mode: e.target.value})}><option value="training">Тренировка</option><option value="control">Контрольный</option></select>

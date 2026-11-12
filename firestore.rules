@@ -32,6 +32,8 @@ service cloud.firestore { match /databases/{d}/documents {
     allow create: if signed() && request.resource.data.studentId == request.auth.uid && request.resource.data.createdAt == request.time
       && request.resource.data.score is number && request.resource.data.max is number && request.resource.data.score <= request.resource.data.max;
   }
+  // Рекомендации учителя ученику (в том числе подготовленные с помощью ИИ): читает ученик и учитель, пишет учитель
+  match /analyses/{u} { allow read: if signed() && (request.auth.uid == u || teacher()); allow write: if teacher(); }
   match /assignments/{a} {
     allow read: if signed() && (resource.data.teacherId == request.auth.uid || member(resource.data.groupId));
     allow create: if teacher() && request.resource.data.teacherId == request.auth.uid && ownerOf(request.resource.data.groupId);

@@ -11,9 +11,10 @@ export function badgesOf(at: any[]) {
   ];
 }
 
-export function Results({as, at, ba = [], onBack}: any) {
+export function Results({as, at, ba = [], analysis, onBack}: any) {
   const bs = badgesOf(at);
   return <div><button className="s" onClick={onBack}>← К карте</button><h2>📊 Мои результаты</h2>
+    {analysis}
     <div className="card"><h3>Значки</h3><div className="grid">{bs.map(b => <div key={b.n} style={{opacity: b.ok ? 1 : .45}}><span style={{fontSize: '1.8rem'}}>{b.ok ? b.i : '🔒'}</span> <b>{b.n}</b><div className="mu">{b.d}</div></div>)}</div></div>
     <div className="card"><h3>Олимпиадные варианты</h3>{!ba.length ? <div className="mu">Ты ещё не сдавал(а) варианты в тренажёре.</div> : ba.map((t: any) => { const p = t.max ? Math.round(t.score / t.max * 100) : 0;
       return <div key={t.id} style={{marginTop: 8}}><div className="bar"><span>{vTitle(t.stage, t.variant)}<span className="mu"> · {fmtDate(t.createdAt)}</span></span><b>{t.score} из {t.max} баллов</b></div>
