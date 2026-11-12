@@ -3,6 +3,7 @@ import {onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPa
 import {collection, doc, getDoc, getDocs, query, where, orderBy, setDoc, addDoc, updateDoc, writeBatch, serverTimestamp, increment, Timestamp} from 'firebase/firestore';
 import {auth, db, configured} from './firebase';
 import xylem from '../content/xylem.json';
+import bank from '../content/bank.json';
 
 const box: any = {maxWidth: 900, margin: '0 auto', padding: 14, font: '17px/1.5 system-ui', color: '#12302a'};
 const card: any = {border: '1px solid #cfe3dc', borderRadius: 12, padding: 12, margin: '10px 0', background: '#fff'};
@@ -45,7 +46,7 @@ function Auth() {
 }
 
 function Student({uid, prof, reload}: any) {
-  const [code, setCode] = useState(''), [as, setAs] = useState<any[]>([]), [at, setAt] = useState<any[]>([]), [w, setW] = useState<any>(null), [err, setErr] = useState(''), [showD, setShowD] = useState(false);
+  const [code, setCode] = useState(''), [as, setAs] = useState<any[]>([]), [at, setAt] = useState<any[]>([]), [w, setW] = useState<any>(null), [err, setErr] = useState(''), [showD, setShowD] = useState(false), [showT, setShowT] = useState(false);
   const refresh = async () => {
     if (!prof.groupId) return;
     setAs(mk((await getDocs(query(collection(db, 'assignments'), where('groupId', '==', prof.groupId)))).docs));
@@ -65,15 +66,40 @@ function Student({uid, prof, reload}: any) {
   };
   if (!prof.groupId) return <div style={card}><h2>Присоединиться к группе</h2><input placeholder="Код группы" value={code} onChange={e => setCode(e.target.value)}/><button onClick={join}>Войти в группу</button><div>{err}</div></div>;
   if (w) return <Work a={w} uid={uid} prof={prof} onDone={() => { setW(null); refresh(); }}/>;
+  if (showT) return <Trainer onBack={() => setShowT(false)}/>;
   if (showD) return <Diary uid={uid} as={as} at={at} onBack={() => setShowD(false)}/>;
   const nErr = Object.values(at.reduce((m: any, t: any) => { if (Array.isArray(t.wrong) && (!m[t.assignmentId] || m[t.assignmentId].n < t.n)) m[t.assignmentId] = t; return m; }, {})).reduce((n: number, t: any) => n + t.wrong.length, 0);
   return <div><h2>{prof.name}, {prof.cls}</h2>
-    <div style={card}><button onClick={() => setShowD(true)}>📓 Дневник ошибок{nErr ? ` (вопросов для разбора: ${nErr})` : ''}</button></div>
+    <div style={card}><button onClick={() => setShowD(true)}>📓 Дневник ошибок{nErr ? ` (вопросов для разбора: ${nErr})` : ''}</button> <button onClick={() => setShowT(true)}>🏆 Олимпиадный тренажёр</button></div>
     {as.map(a => { const mine = at.filter(t => t.assignmentId === a.id).sort((x, y) => x.n - y.n); return <div key={a.id} style={card}>
       <b>Тема: {a.topicId}</b> · {a.mode === 'control' ? 'контрольный' : 'тренировка'} · срок: {a.due || '—'} · попыток {mine.length}/{a.tries}
       <div><button disabled={mine.length >= a.tries} onClick={() => setW(a)}>{mine.length ? 'Новая попытка' : 'Начать'}</button></div>
       {mine.map(t => <div key={t.id}>Попытка {t.n}: {t.status}{t.score != null ? ` · ${t.score}/${t.max}` : ' · результат появится после проверки учителем'}{t.comments.map((c: string, i: number) => <div key={i}>💬 {c}</div>)}</div>)}</div>; })}
     {!as.length && <div style={card}>Заданий пока нет.</div>}</div>;
+}
+
+function Trainer({onBack}: any) {
+  const [qs, setQs] = useState<any[]>([]), [keys, setKeys] = useState<any>({}), [ans, setAns] = useState<any>({}), [chk, setChk] = useState<any>({}), [loaded, setLoaded] = useState(false), [err, setErr] = useState('');
+  useEffect(() => {
+    (async () => {
+      const q = await getDocs(query(collection(db, 'questions'), where('topicId', '==', 'bank'), where('confirmed', '==', true)));
+      setQs(mk(q.docs).sort((a: any, b: any) => a.order - b.order));
+      const k: any = {}; (await getDocs(collection(db, 'bankKeys'))).docs.forEach(d => { k[d.id] = d.data().answer; }); setKeys(k);
+      setLoaded(true);
+    })().catch(e => { setErr(msgOf(e)); setLoaded(true); });
+  }, []);
+  return <div><button onClick={onBack}>← Назад</button><h2>🏆 Олимпиадный тренажёр</h2>
+    <div style={card}>Задания из образцов олимпиады «Дарын» 2025 (не авторские). Они появляются здесь после того, как учитель подтвердит ключ. Проверка идёт по ключу, подтверждённому учителем.</div>
+    <div style={{color: '#c2410c'}}>{err}</div>
+    {!loaded ? <div>Загрузка…</div> : !qs.length ? <div style={card}>Пока нет заданий с подтверждённым ключом.</div> :
+      qs.map((q, i) => <div key={q.id} style={card}>
+        {q.ctx && (i === 0 || qs[i - 1].ctx !== q.ctx) && <div style={{background: '#f1f7f5', padding: 8, borderRadius: 8, marginBottom: 8, fontSize: 15}}>{q.ctx}</div>}
+        <div style={{fontSize: 13, color: '#4b635d'}}>{q.src}</div><b>{q.text}</b>
+        {q.options.map((o: string, j: number) => <label key={j} style={{display: 'block'}}><input type="radio" name={q.id} checked={ans[q.id] === j} onChange={() => { setAns({...ans, [q.id]: j}); const c = {...chk}; delete c[q.id]; setChk(c); }}/> {o}</label>)}
+        <button disabled={ans[q.id] === undefined} onClick={() => setChk({...chk, [q.id]: true})}>Проверить</button>
+        {chk[q.id] && <div style={{color: ans[q.id] === keys[q.id] ? '#15803d' : '#c2410c'}}>{ans[q.id] === keys[q.id] ? 'Верно' : 'Неверно'} (по ключу, подтверждённому учителем)</div>}
+      </div>)}
+  </div>;
 }
 
 const REASONS = ['Не знал(а) тему', 'Невнимательно прочитал(а) вопрос', 'Перепутал(а) понятия', 'Не понял(а) вопрос', 'Угадывал(а)', 'Другое'];
@@ -140,6 +166,44 @@ function Work({a, uid, prof, onDone}: any) {
     <div>Пропущено: {skipped}. Пропуск даёт 0 баллов.</div><button disabled={busy} onClick={send}>{busy ? 'Отправка…' : 'Подтвердить сдачу'}</button> <button onClick={onDone}>Назад</button><div style={{color: '#c2410c'}}>{err}</div></div>;
 }
 
+function BankAdmin() {
+  const [keys, setKeys] = useState<any>({}), [sel, setSel] = useState<any>({}), [msg, setMsg] = useState(''), [open, setOpen] = useState(false);
+  const items: any[] = (bank as any).items;
+  const load = async () => { const m: any = {}; (await getDocs(query(collection(db, 'keys'), where('topicId', '==', 'bank')))).docs.forEach(d => { m[d.id] = d.data(); }); setKeys(m); };
+  useEffect(() => { load().catch(e => setMsg(msgOf(e))); }, []);
+  const run = async (fn: () => Promise<any>, ok: string) => { setMsg(''); try { await fn(); await load(); setMsg(ok); } catch (e) { setMsg(msgOf(e)); } };
+  const seedBank = () => run(async () => {
+    const b = writeBatch(db); let n = 0;
+    items.forEach((q, i) => { if (keys[q.id]) return; n++; const {answer, ...pub} = q; b.set(doc(db, 'questions', q.id), {...pub, topicId: 'bank', type: 'single', confirmed: false, order: i}); b.set(doc(db, 'keys', q.id), {answer, confirmed: false, draft: true, topicId: 'bank'}); });
+    if (n) await b.commit();
+  }, 'Банк загружен (уже существующие задания не менялись)');
+  const setConfirm = (q: any, on: boolean) => run(async () => {
+    const ans = sel[q.id] ?? keys[q.id]?.answer; const b = writeBatch(db);
+    b.update(doc(db, 'keys', q.id), {answer: ans, confirmed: on, draft: false}); b.update(doc(db, 'questions', q.id), {confirmed: on});
+    if (on) b.set(doc(db, 'bankKeys', q.id), {answer: ans}); else b.delete(doc(db, 'bankKeys', q.id));
+    await b.commit();
+  }, on ? 'Ключ подтверждён' : 'Подтверждение снято');
+  const nOk = Object.values(keys).filter((k: any) => k.confirmed).length;
+  return <div style={card}><b>🏆 Банк олимпиады</b> · загружено {Object.keys(keys).length} из {items.length}, подтверждено учителем: {nOk} <button onClick={() => setOpen(!open)}>{open ? 'Свернуть' : 'Открыть'}</button>
+    <div><b>{msg}</b></div>
+    {open && <>
+      <div style={{background: '#fff7ed', padding: 8, borderRadius: 8, margin: '8px 0'}}>Задания взяты из PDF олимпиады «Дарын» 2025 и не являются авторскими. Предварительный ключ (черновик) составлен Claude и <b>не является официальным</b>: проверьте каждый по оригиналу. Ученики видят задание в тренажёре только после вашего подтверждения; подтверждённые ключи открыты ученикам для самопроверки.</div>
+      <button onClick={seedBank}>Загрузить задания банка ({items.length})</button>
+      {items.map((q, i) => { const k = keys[q.id]; const cur = sel[q.id] ?? k?.answer;
+        return <div key={q.id} style={{...card, background: k?.confirmed ? '#f0fdf4' : '#fff'}}>
+          {q.ctx && (i === 0 || items[i - 1].ctx !== q.ctx) && <div style={{background: '#f1f7f5', padding: 8, borderRadius: 8, marginBottom: 8, fontSize: 15}}>{q.ctx}</div>}
+          <div style={{fontSize: 13}}>{q.src}</div>
+          <div style={{fontSize: 13, color: k?.confirmed ? '#15803d' : '#c2410c'}}>{!k ? 'не загружено' : k.confirmed ? 'Ключ подтверждён учителем' : 'Ключ требует проверки учителем (отмечен черновик)'}</div>
+          <b>{q.text}</b>
+          {q.options.map((o: string, j: number) => <label key={j} style={{display: 'block'}}><input type="radio" name={'b_' + q.id} disabled={!k} checked={cur === j} onChange={() => setSel({...sel, [q.id]: j})}/> {o}</label>)}
+          <button disabled={!k} onClick={() => setConfirm(q, true)}>Подтвердить ключ</button> {k?.confirmed && <button onClick={() => setConfirm(q, false)}>Снять подтверждение</button>}
+        </div>; })}
+      <h4>Не импортировано или требует проверки</h4>
+      {(bank as any).excluded.map((e: any) => <div key={e.title} style={card}><b>{e.title}</b><div>{e.note}</div></div>)}
+    </>}
+  </div>;
+}
+
 function Teacher({uid}: any) {
   const [gs, setGs] = useState<any[]>([]), [as, setAs] = useState<any[]>([]), [at, setAt] = useState<any[]>([]), [name, setName] = useState(''), [f, setF] = useState<any>({groupId: '', topicId: 'xylem', due: '', mode: 'training', tries: 2}), [cm, setCm] = useState<any>({}), [msg, setMsg] = useState('');
   const refresh = async () => {
@@ -170,6 +234,7 @@ function Teacher({uid}: any) {
   };
   return <div><h2>Кабинет учителя</h2><div><b>{msg}</b></div>
     <div style={card}><button onClick={() => act(seed, 'Задания загружены')}>Загрузить задания (тема «xylem»)</button></div>
+    <BankAdmin/>
     <div style={card}><input placeholder="Название группы" value={name} onChange={e => setName(e.target.value)}/><button onClick={() => act(group, 'Группа создана')}>Создать группу</button>{gs.map(g => <div key={g.id}>{g.name}: код <b>{g.code}</b></div>)}</div>
     <div style={card}><select value={f.groupId} onChange={e => setF({...f, groupId: e.target.value})}><option value="">Группа</option>{gs.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}</select>
       <input type="date" value={f.due} onChange={e => setF({...f, due: e.target.value})}/><select value={f.mode} onChange={e => setF({...f, mode: e.target.value})}><option value="training">Тренировка</option><option value="control">Контрольный</option></select>

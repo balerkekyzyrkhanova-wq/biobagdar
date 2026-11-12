@@ -24,6 +24,8 @@ service cloud.firestore { match /databases/{d}/documents {
   match /groupCodes/{c} { allow get: if signed(); allow create: if teacher() && request.resource.data.teacherId == request.auth.uid; }
   match /questions/{q} { allow read: if signed(); allow write: if teacher(); }
   match /keys/{q} { allow read, write: if teacher(); }   // ключи видит только учитель
+  // Подтверждённые учителем ключи тренажёра олимпиады (читают все вошедшие, пишет только учитель)
+  match /bankKeys/{q} { allow read: if signed(); allow write: if teacher(); }
   match /assignments/{a} {
     allow read: if signed() && (resource.data.teacherId == request.auth.uid || member(resource.data.groupId));
     allow create: if teacher() && request.resource.data.teacherId == request.auth.uid && ownerOf(request.resource.data.groupId);
