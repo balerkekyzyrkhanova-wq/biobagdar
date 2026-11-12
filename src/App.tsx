@@ -204,7 +204,7 @@ function BankAdmin() {
   const nMatch = items.filter(q => q.official !== undefined && keys[q.id] && !keys[q.id].confirmed).length;
   const nOk = Object.values(keys).filter((k: any) => k.confirmed).length;
   return <div style={card}><b>🏆 Банк олимпиады</b> · загружено {Object.keys(keys).length} из {items.length}, подтверждено учителем: {nOk} <button onClick={() => setOpen(!open)}>{open ? 'Свернуть' : 'Открыть'}</button>
-    <div><b>{msg}</b></div>
+    {msg && <div style={{position: 'sticky', top: 0, zIndex: 5, background: '#fffbe6', border: '1px solid #e5c200', borderRadius: 8, padding: 8, margin: '6px 0'}}><b>{msg}</b>{msg.startsWith('Нет доступа') && <div>Скорее всего, не загружены новые правила Firebase: в папке проекта выполните <code>npx firebase-tools deploy --only firestore --project biobagdar</code></div>}</div>}
     {open && <>
       <div style={{background: '#fff7ed', padding: 8, borderRadius: 8, margin: '8px 0'}}>Задания взяты из PDF олимпиады «Дарын» 2025 и не являются авторскими. Предварительный ключ (черновик) составлен Claude и <b>не является официальным</b>: проверьте каждый по оригиналу. Ученики видят задание в тренажёре только после вашего подтверждения; подтверждённые ключи открыты ученикам для самопроверки.</div>
       <button onClick={seedBank}>Загрузить задания банка ({items.length})</button>
