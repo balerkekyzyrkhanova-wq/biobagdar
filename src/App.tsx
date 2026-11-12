@@ -45,7 +45,7 @@ function Auth() {
 }
 
 function Student({uid, prof, reload}: any) {
-  const [code, setCode] = useState(''), [as, setAs] = useState<any[]>([]), [at, setAt] = useState<any[]>([]), [w, setW] = useState<any>(null), [err, setErr] = useState('');
+  const [code, setCode] = useState(''), [as, setAs] = useState<any[]>([]), [at, setAt] = useState<any[]>([]), [w, setW] = useState<any>(null), [err, setErr] = useState(''), [showD, setShowD] = useState(false);
   const refresh = async () => {
     if (!prof.groupId) return;
     setAs(mk((await getDocs(query(collection(db, 'assignments'), where('groupId', '==', prof.groupId)))).docs));
@@ -65,12 +65,59 @@ function Student({uid, prof, reload}: any) {
   };
   if (!prof.groupId) return <div style={card}><h2>Присоединиться к группе</h2><input placeholder="Код группы" value={code} onChange={e => setCode(e.target.value)}/><button onClick={join}>Войти в группу</button><div>{err}</div></div>;
   if (w) return <Work a={w} uid={uid} prof={prof} onDone={() => { setW(null); refresh(); }}/>;
+  if (showD) return <Diary uid={uid} as={as} at={at} onBack={() => setShowD(false)}/>;
+  const nErr = Object.values(at.reduce((m: any, t: any) => { if (Array.isArray(t.wrong) && (!m[t.assignmentId] || m[t.assignmentId].n < t.n)) m[t.assignmentId] = t; return m; }, {})).reduce((n: number, t: any) => n + t.wrong.length, 0);
   return <div><h2>{prof.name}, {prof.cls}</h2>
+    <div style={card}><button onClick={() => setShowD(true)}>📓 Дневник ошибок{nErr ? ` (вопросов для разбора: ${nErr})` : ''}</button></div>
     {as.map(a => { const mine = at.filter(t => t.assignmentId === a.id).sort((x, y) => x.n - y.n); return <div key={a.id} style={card}>
       <b>Тема: {a.topicId}</b> · {a.mode === 'control' ? 'контрольный' : 'тренировка'} · срок: {a.due || '—'} · попыток {mine.length}/{a.tries}
       <div><button disabled={mine.length >= a.tries} onClick={() => setW(a)}>{mine.length ? 'Новая попытка' : 'Начать'}</button></div>
       {mine.map(t => <div key={t.id}>Попытка {t.n}: {t.status}{t.score != null ? ` · ${t.score}/${t.max}` : ' · результат появится после проверки учителем'}{t.comments.map((c: string, i: number) => <div key={i}>💬 {c}</div>)}</div>)}</div>; })}
     {!as.length && <div style={card}>Заданий пока нет.</div>}</div>;
+}
+
+const REASONS = ['Не знал(а) тему', 'Невнимательно прочитал(а) вопрос', 'Перепутал(а) понятия', 'Не понял(а) вопрос', 'Угадывал(а)', 'Другое'];
+
+function Diary({uid, as, at, onBack}: any) {
+  const [qs, setQs] = useState<any>({}), [dr, setDr] = useState<any>({}), [msg, setMsg] = useState(''), [loaded, setLoaded] = useState(false);
+  const last: any = {};
+  at.forEach((t: any) => { if (Array.isArray(t.wrong) && t.wrong.length && (!last[t.assignmentId] || last[t.assignmentId].n < t.n)) last[t.assignmentId] = t; });
+  const items: any[] = [];
+  Object.values(last).forEach((t: any) => { const a = as.find((x: any) => x.id === t.assignmentId); t.wrong.forEach((qid: string) => items.push({key: `${t.id}_${qid}`, t, qid, topic: a?.topicId})); });
+  useEffect(() => {
+    (async () => {
+      const topics = Array.from(new Set(items.map(i => i.topic).filter(Boolean)));
+      const m: any = {};
+      for (const tp of topics) (await getDocs(query(collection(db, 'questions'), where('topicId', '==', tp), orderBy('order')))).docs.forEach(d => { m[d.id] = d.data(); });
+      setQs(m);
+      const d: any = {}; (await getDocs(collection(db, 'users', uid, 'diary'))).docs.forEach(x => { d[x.id] = x.data(); });
+      setDr(d); setLoaded(true);
+    })().catch(e => { setMsg(msgOf(e)); setLoaded(true); });
+  }, []);
+  const set = (k: string, patch: any) => setDr({...dr, [k]: {...dr[k], ...patch}});
+  const save = async (it: any, patch: any = {}) => {
+    setMsg('');
+    try {
+      const v = {...dr[it.key], ...patch};
+      await setDoc(doc(db, 'users', uid, 'diary', it.key), {attemptId: it.t.id, qid: it.qid, topicId: it.topic || '', reason: v.reason || '', note: v.note || '', done: !!v.done, updatedAt: serverTimestamp()}, {merge: true});
+      setDr({...dr, [it.key]: v}); setMsg('Сохранено');
+    } catch (e) { setMsg(msgOf(e)); }
+  };
+  const ansText = (q: any, v: any) => v === undefined ? 'без ответа' : q.type === 'tf' ? (v ? 'Верно' : 'Неверно') : q.options?.[v];
+  const left = items.filter(i => !dr[i.key]?.done).length;
+  return <div><button onClick={onBack}>← Назад</button><h2>📓 Дневник ошибок</h2>
+    <div><b>{msg}</b></div>
+    {!loaded ? <div>Загрузка…</div> : !items.length ? <div style={card}>Пока нет ошибок для разбора. Дневник заполняется после того, как учитель проверит работу.</div> :
+      <><div>Осталось разобрать: {left} из {items.length}</div>
+      {items.sort((a, b) => (qs[a.qid]?.order ?? 0) - (qs[b.qid]?.order ?? 0)).map(it => { const q = qs[it.qid]; if (!q) return null; const d = dr[it.key] || {};
+        return <div key={it.key} style={{...card, opacity: d.done ? 0.6 : 1}}>
+          <div><b>{q.text}</b></div>
+          <div>Мой ответ: <b>{ansText(q, it.t.answers?.[it.qid])}</b> <span style={{color: '#c2410c'}}>(не засчитан)</span></div>
+          <div>Почему ошибся?
+            <select value={d.reason || ''} onChange={e => set(it.key, {reason: e.target.value})}><option value="">— выберите —</option>{REASONS.map(r => <option key={r}>{r}</option>)}</select></div>
+          <textarea style={{width: '100%'}} placeholder="Что нужно повторить? Как будешь запоминать? (правильный ответ уточни у учителя или в учебнике)" value={d.note || ''} onChange={e => set(it.key, {note: e.target.value})}/>
+          <div><label><input type="checkbox" checked={!!d.done} onChange={e => save(it, {done: e.target.checked})}/> Разобрал(а)</label> <button onClick={() => save(it)}>Сохранить</button></div></div>; })}</>}
+  </div>;
 }
 
 function Work({a, uid, prof, onDone}: any) {
@@ -115,9 +162,10 @@ function Teacher({uid}: any) {
   };
   const review = async (t: any, retry: boolean) => {
     const a = as.find(x => x.id === t.assignmentId); const ks = await getDocs(query(collection(db, 'keys'), where('topicId', '==', a.topicId)));
-    let score = 0; ks.docs.forEach(k => { if (t.answers[k.id] !== undefined && t.answers[k.id] === k.data().answer) score++; });
+    let score = 0; const wrong: string[] = [];
+    ks.docs.forEach(k => { if (t.answers[k.id] !== undefined && t.answers[k.id] === k.data().answer) score++; else wrong.push(k.id); });
     if (cm[t.id]?.trim()) await addDoc(collection(db, 'attempts', t.id, 'comments'), {text: cm[t.id].trim(), at: serverTimestamp()});
-    await updateDoc(doc(db, 'attempts', t.id), {score, max: ks.size, status: retry ? 'На доработке' : 'Проверено'});
+    await updateDoc(doc(db, 'attempts', t.id), {score, max: ks.size, wrong, status: retry ? 'На доработке' : 'Проверено'});
     if (retry) await updateDoc(doc(db, 'assignments', t.assignmentId), {tries: increment(1)});
   };
   return <div><h2>Кабинет учителя</h2><div><b>{msg}</b></div>
