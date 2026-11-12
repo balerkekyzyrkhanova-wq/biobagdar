@@ -3,7 +3,8 @@ import {onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPa
 import {collection, doc, getDoc, getDocs, query, where, orderBy, setDoc, addDoc, updateDoc, writeBatch, serverTimestamp, increment, Timestamp} from 'firebase/firestore';
 import {auth, db, configured} from './firebase';
 import xylem from '../content/xylem.json';
-import bank from '../content/bank.json';
+import {Ctx, Trainer, BankAttemptsList, vTitle, fmtDate} from './Olympiad';
+import {ALL_ITEMS, EXCLUDED, VARIANTS, STAGE_NAME, itemsOf, maxOf, meta} from './bankdata';
 import {Results, badgesOf} from './Results';
 import {Owl, Hero, Profile, StationMap, Topic, OWL, useProfile} from './Expedition';
 
@@ -48,8 +49,9 @@ function Auth() {
 }
 
 function Student({uid, prof, reload}: any) {
-  const [code, setCode] = useState(''), [as, setAs] = useState<any[]>([]), [at, setAt] = useState<any[]>([]), [w, setW] = useState<any>(null), [err, setErr] = useState(''), [showD, setShowD] = useState(false), [showT, setShowT] = useState(false), [showTopic, setShowTopic] = useState(false), [showR, setShowR] = useState(false), [pf, setPf] = useProfile();
+  const [code, setCode] = useState(''), [as, setAs] = useState<any[]>([]), [at, setAt] = useState<any[]>([]), [w, setW] = useState<any>(null), [err, setErr] = useState(''), [showD, setShowD] = useState(false), [showT, setShowT] = useState(false), [showTopic, setShowTopic] = useState(false), [showR, setShowR] = useState(false), [ba, setBa] = useState<any[]>([]), [pf, setPf] = useProfile();
   const refresh = async () => {
+    try { setBa(mk((await getDocs(query(collection(db, 'bankAttempts'), where('studentId', '==', uid)))).docs).sort((x: any, y: any) => (y.createdAt?.seconds || 0) - (x.createdAt?.seconds || 0))); } catch { setBa([]); }
     if (!prof.groupId) return;
     setAs(mk((await getDocs(query(collection(db, 'assignments'), where('groupId', '==', prof.groupId)))).docs));
     const t = await getDocs(query(collection(db, 'attempts'), where('studentId', '==', uid)));
@@ -69,8 +71,8 @@ function Student({uid, prof, reload}: any) {
   if (!prof.groupId) return <div style={card}><h2>Присоединиться к группе</h2><input placeholder="Код группы" value={code} onChange={e => setCode(e.target.value)}/><button onClick={join}>Войти в группу</button><div>{err}</div></div>;
   if (w) return <Work a={w} uid={uid} prof={prof} onDone={() => { setW(null); refresh(); }}/>;
   if (showTopic) return <><Owl text={OWL.topic}/><Topic onBack={() => setShowTopic(false)}/></>;
-  if (showR) return <Results as={as} at={at} onBack={() => setShowR(false)}/>;
-  if (showT) return <Trainer onBack={() => setShowT(false)}/>;
+  if (showR) return <Results as={as} at={at} ba={ba} onBack={() => setShowR(false)}/>;
+  if (showT) return <Trainer uid={uid} prof={prof} onBack={() => { setShowT(false); refresh(); }}/>;
   if (showD) return <Diary uid={uid} as={as} at={at} onBack={() => setShowD(false)}/>;
   const nErr = Object.values(at.reduce((m: any, t: any) => { if (Array.isArray(t.wrong) && (!m[t.assignmentId] || m[t.assignmentId].n < t.n)) m[t.assignmentId] = t; return m; }, {})).reduce((n: number, t: any) => n + t.wrong.length, 0);
   return <div><h2><span style={{fontSize: '1.6rem'}}>{pf.av}</span> <span style={{color: pf.col}}>{prof.name}</span>, {prof.cls}</h2>
@@ -85,38 +87,6 @@ function Student({uid, prof, reload}: any) {
     <StationMap onTopic={() => setShowTopic(true)} onTrainer={() => setShowT(true)} onDiary={() => setShowD(true)}/>
     <Profile prof={pf} setProf={setPf}/>
     {nErr > 0 && <div className="warn">Вопросов для разбора в дневнике ошибок: {nErr}</div>}</div>;
-}
-
-const IMGBASE = (import.meta as any).env.BASE_URL || './';
-function Ctx({q, prev}: any) {
-  if (!q.ctx || (prev && prev.ctx === q.ctx)) return null;
-  return <div style={{background: 'var(--bg)', padding: 10, borderRadius: 8, marginBottom: 8, fontSize: 15, whiteSpace: 'pre-line'}}>{q.ctx}
-    {(q.img || []).map((im: any) => <figure key={im.src} style={{margin: '10px 0 0'}}><img src={IMGBASE + im.src} alt={im.cap} style={{maxWidth: '100%', height: 'auto', borderRadius: 6, background: '#fff'}}/><figcaption style={{fontSize: 13, color: 'var(--mu)'}}>{im.cap}</figcaption></figure>)}
-    {(q.img || []).length > 0 && <details><summary>Как читать рисунок</summary><div style={{fontSize: 14}}>1) Прочитай подпись и найди условные обозначения. 2) Определи, что отложено по осям или что обозначено стрелками и цветами, и в каких единицах. 3) Сравни опыт с контролем: что изменилось и что осталось прежним. 4) Отвечай только по тому, что видно на рисунке и сказано в условии, а не по догадке.</div></details>}</div>;
-}
-
-function Trainer({onBack}: any) {
-  const [qs, setQs] = useState<any[]>([]), [keys, setKeys] = useState<any>({}), [ans, setAns] = useState<any>({}), [chk, setChk] = useState<any>({}), [loaded, setLoaded] = useState(false), [err, setErr] = useState('');
-  useEffect(() => {
-    (async () => {
-      const q = await getDocs(query(collection(db, 'questions'), where('topicId', '==', 'bank'), where('confirmed', '==', true)));
-      setQs(mk(q.docs).sort((a: any, b: any) => a.order - b.order));
-      const k: any = {}; (await getDocs(collection(db, 'bankKeys'))).docs.forEach(d => { k[d.id] = d.data(); }); setKeys(k);
-      setLoaded(true);
-    })().catch(e => { setErr(msgOf(e)); setLoaded(true); });
-  }, []);
-  return <div><button onClick={onBack}>← Назад</button><h2>🏆 Олимпиадный тренажёр</h2><Owl text={OWL.trainer}/>
-    <div style={card}>Задания из образцов олимпиады «Дарын» 2025 (не авторские). Они появляются здесь после того, как учитель подтвердит ключ. Проверка идёт по ключу, подтверждённому учителем.</div>
-    <div style={{color: '#c2410c'}}>{err}</div>
-    {!loaded ? <div>Загрузка…</div> : !qs.length ? <div style={card}>Пока нет заданий с подтверждённым ключом.</div> :
-      qs.map((q, i) => <div key={q.id} style={card}>
-        <Ctx q={q} prev={qs[i - 1]}/>
-        <div style={{fontSize: 13, color: '#4b635d'}}>{q.src}</div><b>{q.text}</b>
-        {q.options.map((o: string, j: number) => <label key={j} style={{display: 'block'}}><input type="radio" name={q.id} checked={ans[q.id] === j} onChange={() => { setAns({...ans, [q.id]: j}); const c = {...chk}; delete c[q.id]; setChk(c); }}/> {o}</label>)}
-        <button disabled={ans[q.id] === undefined} onClick={() => setChk({...chk, [q.id]: true})}>Проверить</button>
-        {chk[q.id] && <div style={{color: ans[q.id] === keys[q.id]?.answer ? '#15803d' : '#c2410c'}}>{ans[q.id] === keys[q.id]?.answer ? 'Верно' : 'Неверно'} (по ключу, подтверждённому учителем){keys[q.id]?.expl && <div style={{color: '#12302a', marginTop: 4}}>💡 {keys[q.id].expl}</div>}</div>}
-      </div>)}
-  </div>;
 }
 
 const REASONS = ['Не знал(а) тему', 'Невнимательно прочитал(а) вопрос', 'Перепутал(а) понятия', 'Не понял(а) вопрос', 'Угадывал(а)', 'Другое'];
@@ -185,13 +155,14 @@ function Work({a, uid, prof, onDone}: any) {
 
 function BankAdmin() {
   const [keys, setKeys] = useState<any>({}), [sel, setSel] = useState<any>({}), [msg, setMsg] = useState(''), [open, setOpen] = useState(false);
-  const items: any[] = (bank as any).items;
+  const [vs, setVs] = useState('district|1');
+  const all = ALL_ITEMS; const [stg, vnum] = vs.split('|'); const items: any[] = itemsOf(stg as any, +vnum);
   const load = async () => { const m: any = {}; (await getDocs(query(collection(db, 'keys'), where('topicId', '==', 'bank')))).docs.forEach(d => { m[d.id] = d.data(); }); setKeys(m); };
   useEffect(() => { load().catch(e => setMsg(msgOf(e))); }, []);
   const run = async (fn: () => Promise<any>, ok: string) => { setMsg(''); try { await fn(); await load(); setMsg(ok); } catch (e) { setMsg(msgOf(e)); } };
   const seedBank = () => run(async () => {
     const b = writeBatch(db); let n = 0;
-    items.forEach((q, i) => {
+    all.forEach((q, i) => {
       const {answer, official, expl, ...pub} = q;
       if (keys[q.id]) { b.set(doc(db, 'questions', q.id), {...pub, topicId: 'bank', type: 'single', order: i}, {merge: true}); return; } // текст и порядок обновляем, подтверждение не трогаем
       n++; b.set(doc(db, 'questions', q.id), {...pub, topicId: 'bank', type: 'single', confirmed: false, order: i}); b.set(doc(db, 'keys', q.id), {answer, confirmed: false, draft: official === undefined, topicId: 'bank'});
@@ -206,18 +177,28 @@ function BankAdmin() {
   }, on ? 'Ключ подтверждён' : 'Подтверждение снято');
   const confirmMatched = () => run(async () => {
     const b = writeBatch(db); let n = 0;
-    items.forEach(q => { const k = keys[q.id]; if (q.official === undefined || !k || k.confirmed) return; n++;
+    all.forEach(q => { const k = keys[q.id]; if (q.official === undefined || !k || k.confirmed) return; n++;
       b.update(doc(db, 'keys', q.id), {answer: q.official, confirmed: true, draft: false}); b.update(doc(db, 'questions', q.id), {confirmed: true}); b.set(doc(db, 'bankKeys', q.id), {answer: q.official, expl: q.expl || ''}); });
     if (!n) throw new Error('Нет заданий для подтверждения: загрузите задания банка или они уже подтверждены');
     await b.commit();
   }, 'Подтверждены все задания, ключи которых совпадают с загруженными файлами ответов');
-  const nMatch = items.filter(q => q.official !== undefined && keys[q.id] && !keys[q.id].confirmed).length;
+  const confirmVariant = () => run(async () => {
+    const b = writeBatch(db); let n = 0;
+    items.forEach(q => { const k = keys[q.id]; if (!k || k.confirmed) return; const ans = sel[q.id] ?? k.answer; n++;
+      b.update(doc(db, 'keys', q.id), {answer: ans, confirmed: true, draft: false}); b.update(doc(db, 'questions', q.id), {confirmed: true}); b.set(doc(db, 'bankKeys', q.id), {answer: ans, expl: q.expl || ''}); });
+    if (!n) throw new Error('Нечего подтверждать: задания не загружены или уже подтверждены');
+    await b.commit();
+  }, 'Весь вариант подтверждён: ученики видят его в тренажёре');
+  const nVar = items.filter(q => keys[q.id] && !keys[q.id].confirmed).length;
+  const nMatch = all.filter(q => q.official !== undefined && keys[q.id] && !keys[q.id].confirmed).length;
   const nOk = Object.values(keys).filter((k: any) => k.confirmed).length;
-  return <div style={card}><b>🏆 Банк олимпиады</b> · загружено {Object.keys(keys).length} из {items.length}, подтверждено учителем: {nOk} <button onClick={() => setOpen(!open)}>{open ? 'Свернуть' : 'Открыть'}</button>
+  return <div style={card}><b>🏆 Банк олимпиады</b> · загружено {Object.keys(keys).length} из {all.length}, подтверждено учителем: {nOk} <button onClick={() => setOpen(!open)}>{open ? 'Свернуть' : 'Открыть'}</button>
     {msg && <div style={{position: 'sticky', top: 0, zIndex: 5, background: '#fffbe6', border: '1px solid #e5c200', borderRadius: 8, padding: 8, margin: '6px 0'}}><b>{msg}</b>{msg.startsWith('Нет доступа') && <div>Скорее всего, не загружены новые правила Firebase: в папке проекта выполните <code>npx firebase-tools deploy --only firestore --project biobagdar</code></div>}</div>}
     {open && <>
-      <div style={{background: '#fff7ed', padding: 8, borderRadius: 8, margin: '8px 0'}}>Задания взяты из PDF олимпиады «Дарын» 2025 и не являются авторскими. Предварительный ключ (черновик) составлен Claude и <b>не является официальным</b>: проверьте каждый по оригиналу. Ученики видят задание в тренажёре только после вашего подтверждения; подтверждённые ключи открыты ученикам для самопроверки.</div>
-      <button onClick={seedBank}>Загрузить задания банка ({items.length})</button>
+      <div style={{background: '#fff7ed', padding: 8, borderRadius: 8, margin: '8px 0'}}>Варианты 1 — образцы олимпиады «Дарын» 2025 (не авторские); ключи из загруженных вами файлов ответов. Варианты 2 и 3 составлены Claude: их ключи — <b>черновики, не официальные</b>. Проверьте каждое задание и ключ, при необходимости измените ответ и подтвердите. Ученик видит вариант в тренажёре, только когда подтверждены все его задания; подтверждённые ключи открыты ученикам для самопроверки.</div>
+      <div style={{margin: '8px 0'}}><select value={vs} onChange={e => setVs(e.target.value)}>{VARIANTS.map(v => <option key={v.stage + v.variant} value={v.stage + '|' + v.variant}>{STAGE_NAME[v.stage]} · {v.title} ({itemsOf(v.stage, v.variant).length} заданий, {maxOf(itemsOf(v.stage, v.variant))} баллов)</option>)}</select></div>
+      {nVar > 0 && <div style={{margin: '8px 0'}}><button onClick={() => { if (confirm(`Подтвердить ключи всех неподтверждённых заданий этого варианта (${nVar})? Делайте это только после того, как вы их проверили.`)) confirmVariant(); }}>Подтвердить весь вариант ({nVar})</button></div>}
+      <button onClick={seedBank}>Загрузить задания банка ({all.length})</button>
       {nMatch > 0 && <div style={{margin: '8px 0'}}><button onClick={() => { if (confirm(`Подтвердить ${nMatch} заданий, ключи которых совпадают с загруженными вами файлами ответов (районный и областной этапы)?`)) confirmMatched(); }}>Подтвердить все совпавшие с файлом ответов ({nMatch})</button></div>}
       {items.map((q, i) => { const k = keys[q.id]; const cur = sel[q.id] ?? k?.answer;
         return <div key={q.id} style={{...card, background: k?.confirmed ? '#f0fdf4' : '#fff'}}>
@@ -229,7 +210,7 @@ function BankAdmin() {
           <button disabled={!k} onClick={() => setConfirm(q, true)}>Подтвердить ключ</button> {k?.confirmed && <button onClick={() => setConfirm(q, false)}>Снять подтверждение</button>}
         </div>; })}
       <h4>Не импортировано или требует проверки</h4>
-      {(bank as any).excluded.map((e: any) => <div key={e.title} style={card}><b>{e.title}</b><div>{e.note}</div></div>)}
+      {EXCLUDED.map((e: any) => <div key={e.title} style={card}><b>{e.title}</b><div>{e.note}</div></div>)}
     </>}
   </div>;
 }
@@ -274,6 +255,7 @@ function Teacher({uid}: any) {
   return <div><h2>Кабинет учителя</h2><div><b>{msg}</b></div>
     <div style={card}><button onClick={() => act(seed, 'Задания загружены')}>Загрузить задания (тема «xylem»)</button></div>
     <BankAdmin/>
+    <BankResults/>
     <div style={card}><input placeholder="Название группы" value={name} onChange={e => setName(e.target.value)}/><button onClick={() => act(group, 'Группа создана')}>Создать группу</button>{gs.map(g => <div key={g.id}>{g.name}: код <b>{g.code}</b></div>)}</div>
     <div style={card}><select value={f.groupId} onChange={e => setF({...f, groupId: e.target.value})}><option value="">Группа</option>{gs.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}</select>
       <input type="date" value={f.due} onChange={e => setF({...f, due: e.target.value})}/><select value={f.mode} onChange={e => setF({...f, mode: e.target.value})}><option value="training">Тренировка</option><option value="control">Контрольный</option></select>
@@ -291,4 +273,19 @@ function AnswerSheet({t, qs, ks}: any) {
     return <div key={q.id} style={{borderTop: '1px solid var(--bd)', padding: '6px 0'}}><b>{i + 1}.</b> {q.text}
       <div>Ответ ученика: <b style={{color: ok ? '#15803d' : '#c2410c'}}>{tx(q, v)}</b> {ok ? '✓' : '✗'}</div>
       {!ok && <div className="mu">Ключ: {tx(q, k)}{ks[q.id]?.confirmed === false ? ' (ключ не подтверждён)' : ''}</div>}</div>; })}</div>;
+}
+
+function BankResults() {
+  const [list, setList] = useState<any[]>([]), [keys, setKeys] = useState<any>({}), [open, setOpen] = useState(false), [err, setErr] = useState('');
+  const load = async () => {
+    setErr('');
+    try {
+      setList(mk((await getDocs(collection(db, 'bankAttempts'))).docs).sort((x: any, y: any) => (y.createdAt?.seconds || 0) - (x.createdAt?.seconds || 0)));
+      const k: any = {}; (await getDocs(query(collection(db, 'keys'), where('topicId', '==', 'bank')))).docs.forEach(d => { k[d.id] = d.data(); }); setKeys(k);
+    } catch (e) { setErr(msgOf(e) + (msgOf(e).startsWith('Нет доступа') ? ': обновите правила Firebase (npx firebase-tools deploy --only firestore --project biobagdar)' : '')); }
+  };
+  return <div style={card}><b>📊 Результаты олимпиадных вариантов</b> <button onClick={() => { if (!open) load(); setOpen(!open); }}>{open ? 'Свернуть' : 'Открыть'}</button>
+    {open && <>{err && <div style={{color: '#c2410c'}}>{err}</div>}<button className="s" onClick={load}>Обновить</button>
+      <div className="mu">Баллы считаются в браузере ученика по подтверждённым ключам и сохраняются при сдаче варианта.</div>
+      <BankAttemptsList list={list} qsOf={(s: string, n: number) => itemsOf(s as any, n)} keyOfFor={() => (q: any) => ({answer: keys[q.id]?.answer ?? q.answer, expl: q.expl})} empty="Пока никто не сдавал варианты."/></>}</div>;
 }

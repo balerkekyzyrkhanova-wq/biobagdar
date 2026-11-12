@@ -26,6 +26,12 @@ service cloud.firestore { match /databases/{d}/documents {
   match /keys/{q} { allow read, write: if teacher(); }   // ключи видит только учитель
   // Подтверждённые учителем ключи тренажёра олимпиады (читают все вошедшие, пишет только учитель)
   match /bankKeys/{q} { allow read: if signed(); allow write: if teacher(); }
+  // Результаты олимпиадных вариантов: ученик создаёт только свои, читает свои; учитель читает все
+  match /bankAttempts/{a} {
+    allow read: if signed() && (resource.data.studentId == request.auth.uid || teacher());
+    allow create: if signed() && request.resource.data.studentId == request.auth.uid && request.resource.data.createdAt == request.time
+      && request.resource.data.score is number && request.resource.data.max is number && request.resource.data.score <= request.resource.data.max;
+  }
   match /assignments/{a} {
     allow read: if signed() && (resource.data.teacherId == request.auth.uid || member(resource.data.groupId));
     allow create: if teacher() && request.resource.data.teacherId == request.auth.uid && ownerOf(request.resource.data.groupId);
