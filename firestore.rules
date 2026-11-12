@@ -1,0 +1,49 @@
+rules_version = '2';
+service cloud.firestore { match /databases/{d}/documents {
+  function signed() { return request.auth != null; }
+  // Учитель = есть документ teachers/<uid>. Его создаёт владелец проекта вручную в консоли Firebase.
+  function teacher() { return signed() && exists(/databases/$(d)/documents/teachers/$(request.auth.uid)); }
+  function member(g) { return signed() && exists(/databases/$(d)/documents/groups/$(g)/members/$(request.auth.uid)); }
+  function ownerOf(g) { return get(/databases/$(d)/documents/groups/$(g)).data.teacherId == request.auth.uid; }
+  function asg() { return get(/databases/$(d)/documents/assignments/$(request.resource.data.assignmentId)).data; }
+  match /teachers/{u} { allow read: if signed() && request.auth.uid == u; }
+  match /users/{u} {
+    allow read: if signed() && (request.auth.uid == u || teacher());
+    allow create: if signed() && request.auth.uid == u && request.resource.data.keys().hasOnly(['name', 'cls']);
+    allow update: if signed() && request.auth.uid == u && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['groupId']) && member(request.resource.data.groupId);
+    match /diary/{i} { allow read, write: if signed() && request.auth.uid == u; }
+  }
+  match /groups/{g} {
+    allow read: if signed() && (resource.data.teacherId == request.auth.uid || member(g));
+    allow create: if teacher() && request.resource.data.teacherId == request.auth.uid;
+    match /members/{m} {
+      allow read: if signed() && (request.auth.uid == m || ownerOf(g));
+      allow create: if signed() && request.auth.uid == m && get(/databases/$(d)/documents/groupCodes/$(request.resource.data.code)).data.groupId == g;
+    }
+  }
+  match /groupCodes/{c} { allow get: if signed(); allow create: if teacher() && request.resource.data.teacherId == request.auth.uid; }
+  match /questions/{q} { allow read: if signed(); allow write: if teacher(); }
+  match /keys/{q} { allow read, write: if teacher(); }   // ключи видит только учитель
+  match /assignments/{a} {
+    allow read: if signed() && (resource.data.teacherId == request.auth.uid || member(resource.data.groupId));
+    allow create: if teacher() && request.resource.data.teacherId == request.auth.uid && ownerOf(request.resource.data.groupId);
+    allow update: if teacher() && resource.data.teacherId == request.auth.uid;
+  }
+  match /attempts/{a} {
+    allow read: if signed() && (resource.data.studentId == request.auth.uid || resource.data.teacherId == request.auth.uid);
+    // Ученик только создаёт попытку: свой id, своя группа, до срока, в пределах числа попыток, без балла
+    allow create: if signed() && request.resource.data.studentId == request.auth.uid && member(request.resource.data.groupId)
+      && request.resource.data.status == 'Сдано' && !('score' in request.resource.data)
+      && request.resource.data.submittedAt == request.time
+      && asg().groupId == request.resource.data.groupId && asg().teacherId == request.resource.data.teacherId
+      && request.resource.data.n >= 1 && request.resource.data.n <= asg().tries
+      && a == request.resource.data.assignmentId + '_' + request.auth.uid + '_' + string(request.resource.data.n)
+      && (request.resource.data.n == 1 || exists(/databases/$(d)/documents/attempts/$(request.resource.data.assignmentId + '_' + request.auth.uid + '_' + string(request.resource.data.n - 1))))
+      && (asg().dueAt == null || request.time <= asg().dueAt);
+    allow update: if signed() && resource.data.teacherId == request.auth.uid;
+    match /comments/{c} {
+      allow read: if signed() && (get(/databases/$(d)/documents/attempts/$(a)).data.studentId == request.auth.uid || get(/databases/$(d)/documents/attempts/$(a)).data.teacherId == request.auth.uid);
+      allow create: if signed() && get(/databases/$(d)/documents/attempts/$(a)).data.teacherId == request.auth.uid;
+    }
+  }
+}}
