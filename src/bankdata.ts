@@ -27,4 +27,4 @@ export const itemsOf = (stage: Stage, variant: number) => ALL_ITEMS.filter(q => 
 export const maxOf = (qs: any[]) => qs.reduce((s, q) => s + (meta(q).pts), 0);
 export const EXCLUDED: any[] = (bank as any).excluded;
 
-export const TOPIC_NAMES: Record<string, string> = {xylem: 'Ксилема, флоэма и транспорт веществ', cell: 'Клетка: строение и функции'};
+export const TOPIC_NAMES: Record<string, string> = {xylem: 'Ксилема, флоэма и транспорт веществ', cell: 'Клетка: строение и функции', animals: 'Животные: классы и приспособления'};

@@ -4,12 +4,13 @@ import {collection, doc, getDoc, getDocs, query, where, orderBy, setDoc, addDoc,
 import {auth, db, configured} from './firebase';
 import xylem from '../content/xylem.json';
 import cell from '../content/cell.json';
+import animals from '../content/animals.json';
 import {TeacherAnalytics, MyAnalysis} from './Analytics';
 import {topicStats} from './analytics';
 import {Ctx, Trainer, BankAttemptsList, vTitle, fmtDate} from './Olympiad';
 import {TOPIC_NAMES, ALL_ITEMS, EXCLUDED, VARIANTS, STAGE_NAME, itemsOf, maxOf, meta} from './bankdata';
 import {Results, badgesOf} from './Results';
-import {Owl, Hero, Profile, StationMap, Topic, CellTopic, OWL, useProfile} from './Expedition';
+import {Owl, Hero, Profile, StationMap, Topic, CellTopic, AnimalTopic, OWL, useProfile} from './Expedition';
 
 const box: any = {maxWidth: 940, margin: '0 auto', padding: 14};
 const card: any = {border: '1px solid var(--bd)', borderRadius: 14, padding: 14, margin: '10px 0', background: 'var(--card)'};
@@ -52,7 +53,7 @@ function Auth() {
 }
 
 function Student({uid, prof, reload}: any) {
-  const [code, setCode] = useState(''), [as, setAs] = useState<any[]>([]), [at, setAt] = useState<any[]>([]), [w, setW] = useState<any>(null), [err, setErr] = useState(''), [showD, setShowD] = useState(false), [showT, setShowT] = useState(false), [showTopic, setShowTopic] = useState(false), [showR, setShowR] = useState(false), [showCell, setShowCell] = useState(false), [ba, setBa] = useState<any[]>([]), [bk, setBk] = useState<any>({}), [note, setNote] = useState<any>(null), [pf, setPf] = useProfile();
+  const [code, setCode] = useState(''), [as, setAs] = useState<any[]>([]), [at, setAt] = useState<any[]>([]), [w, setW] = useState<any>(null), [err, setErr] = useState(''), [showD, setShowD] = useState(false), [showT, setShowT] = useState(false), [showTopic, setShowTopic] = useState(false), [showR, setShowR] = useState(false), [showCell, setShowCell] = useState(false), [showAn, setShowAn] = useState(false), [ba, setBa] = useState<any[]>([]), [bk, setBk] = useState<any>({}), [note, setNote] = useState<any>(null), [pf, setPf] = useProfile();
   const refresh = async () => {
     try { setBa(mk((await getDocs(query(collection(db, 'bankAttempts'), where('studentId', '==', uid)))).docs).sort((x: any, y: any) => (y.createdAt?.seconds || 0) - (x.createdAt?.seconds || 0))); } catch { setBa([]); }
     try { const k: any = {}; (await getDocs(collection(db, 'bankKeys'))).docs.forEach(d => { k[d.id] = d.data().answer; }); setBk(k); } catch {}
@@ -75,6 +76,7 @@ function Student({uid, prof, reload}: any) {
   };
   if (!prof.groupId) return <div style={card}><h2>Присоединиться к группе</h2><input placeholder="Код группы" value={code} onChange={e => setCode(e.target.value)}/><button onClick={join}>Войти в группу</button><div>{err}</div></div>;
   if (w) return <Work a={w} uid={uid} prof={prof} onDone={() => { setW(null); refresh(); }}/>;
+  if (showAn) return <><Owl text={OWL.animals}/><AnimalTopic onBack={() => setShowAn(false)}/></>;
   if (showCell) return <><Owl text={OWL.cell}/><CellTopic onBack={() => setShowCell(false)}/></>;
   if (showTopic) return <><Owl text={OWL.topic}/><Topic onBack={() => setShowTopic(false)}/></>;
   if (showR) return <Results as={as} at={at} ba={ba} analysis={<MyAnalysis stats={topicStats(ba, id => bk[id], at)} note={note}/>} onBack={() => setShowR(false)}/>;
@@ -90,7 +92,7 @@ function Student({uid, prof, reload}: any) {
       <div><button disabled={mine.length >= a.tries} onClick={() => setW(a)}>{mine.length ? 'Новая попытка' : 'Начать'}</button></div>
       {mine.map(t => <div key={t.id}>Попытка {t.n}: {t.status}{t.score != null ? ` · ${t.score}/${t.max}` : ' · результат появится после проверки учителем'}{t.comments.map((c: string, i: number) => <div key={i}>💬 {c}</div>)}</div>)}</div>; })}
     {!as.length && <div style={card}>Заданий от учителя пока нет. Ты можешь изучать готовую тему на карте.</div>}
-    <StationMap onCell={() => setShowCell(true)} onTopic={() => setShowTopic(true)} onTrainer={() => setShowT(true)} onDiary={() => setShowD(true)}/>
+    <StationMap onAnimals={() => setShowAn(true)} onCell={() => setShowCell(true)} onTopic={() => setShowTopic(true)} onTrainer={() => setShowT(true)} onDiary={() => setShowD(true)}/>
     <Profile prof={pf} setProf={setPf}/>
     {nErr > 0 && <div className="warn">Вопросов для разбора в дневнике ошибок: {nErr}</div>}</div>;
 }
@@ -239,7 +241,7 @@ function Teacher({uid}: any) {
   };
   useEffect(() => { refresh(); }, []);
   const act = async (fn: () => Promise<any>, ok: string) => { setMsg(''); try { await fn(); setMsg(ok); refresh(); } catch (e) { setMsg(msgOf(e)); } };
-  const SETS: any = {xylem, cell};
+  const SETS: any = {xylem, cell, animals};
   const seed = async (tp: string) => {
     const have = await getDocs(query(collection(db, 'keys'), where('topicId', '==', tp))); const ex = new Set(have.docs.map(d => d.id));
     const b = writeBatch(db);
@@ -272,7 +274,7 @@ function Teacher({uid}: any) {
   return <div><h2>Кабинет учителя</h2><div><b>{msg}</b></div>
     <div style={card}><b>Темы для назначения группе</b>
       {Object.keys(SETS).map(tp => <div key={tp} style={{marginTop: 8}}>{TOPIC_NAMES[tp]} ({SETS[tp].length} заданий)<div><button onClick={() => act(() => seed(tp), 'Задания загружены: ' + TOPIC_NAMES[tp])}>Загрузить задания</button> <button className="s" onClick={() => { if (confirm('Подтвердить ключи всех заданий этой темы? Ключи составлены Claude, делайте это после проверки.')) act(() => confirmTopic(tp), 'Ключи подтверждены: ' + TOPIC_NAMES[tp]); }}>Подтвердить ключи темы</button></div></div>)}
-      <div className="mu">Ключи темы «Клетка» составлены Claude и пока не подтверждены: в контрольном режиме тему можно назначить только после подтверждения.</div></div>
+      <div className="mu">Ключи тем «Клетка» и «Животные» составлены Claude и пока не подтверждены: в контрольном режиме тему можно назначить только после подтверждения.</div></div>
     <BankAdmin/>
     <BankResults/>
     <TeacherAnalytics uid={uid}/>

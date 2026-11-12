@@ -68,3 +68,8 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--g);font-weight:700}
 @keyframes inw{0%{opacity:0}30%{opacity:1}100%{opacity:0;transform:translateX(18px)}}
 @keyframes outw{0%{opacity:0}30%{opacity:1}100%{opacity:0;transform:translateX(-18px)}}
 @media(prefers-reduced-motion:reduce){.crun .chl ellipse,.crun .mit ellipse,.wat-in path,.wat-in circle,.wat-out path,.wat-out circle{animation:none}}
+
+.bl{animation:swirl 2s ease-in-out infinite;animation-play-state:paused}.hrun .bl{animation-play-state:running}
+@keyframes swirl{0%{transform:translate(0,0)}25%{transform:translate(8px,-6px)}50%{transform:translate(0,-10px)}75%{transform:translate(-8px,-4px)}100%{transform:translate(0,0)}}
+.hrun .beat{animation:beat .9s ease-in-out infinite}@keyframes beat{0%,100%{transform:scale(1)}15%{transform:scale(1.06)}30%{transform:scale(.98)}}
+@media(prefers-reduced-motion:reduce){.hrun .bl,.hrun .beat{animation:none}}

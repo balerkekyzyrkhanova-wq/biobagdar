@@ -30,7 +30,7 @@ export function topicStats(bankAtt: any[], keyAns: (id: string) => number | unde
   }));
   const lx: any = {};
   xyl.filter(t => t.score != null && t.max).forEach(t => { const k = t.studentId + '|' + t.assignmentId; if (!lx[k] || t.n > lx[k].n) lx[k] = t; });
-  Object.values(lx).forEach((t: any) => { add(Object.keys(t.answers || {}).some(k => k.startsWith('c')) ? 'cell' : 'transport', t.max, t.score, t.max, t.score); });
+  Object.values(lx).forEach((t: any) => { add((() => { const f = Object.keys(t.answers || {})[0] || ''; return f.startsWith('c') ? 'cell' : f.startsWith('a') ? 'animals' : 'transport'; })(), t.max, t.score, t.max, t.score); });
   return Object.values(m).map((s: any) => ({...s, pct: s.max ? Math.round(s.got / s.max * 100) : 0})).sort((a: any, b: any) => a.pct - b.pct);
 }
 export const overall = (st: Stat[]) => { const g = st.reduce((s, x) => s + x.got, 0), m = st.reduce((s, x) => s + x.max, 0); return m ? Math.round(g / m * 100) : null; };
