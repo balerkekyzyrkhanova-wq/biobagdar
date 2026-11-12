@@ -1,0 +1,29 @@
+:root{--bg:#f4faf7;--card:#fff;--tx:#12302a;--mu:#4b6a62;--g:#0f766e;--bt:#fff;--au:#b8860b;--bd:#cfe3dc;--c:#0f766e}
+@media(prefers-color-scheme:dark){:root{--bg:#0d1f1b;--card:#14302a;--tx:#e6f4ef;--mu:#a5c4ba;--bd:#25483f;--g:#2dd4bf;--bt:#04201a;--au:#facc15}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:17px/1.55 system-ui,-apple-system,"Segoe UI",sans-serif}
+h1{font-size:2rem;margin:.2em 0}h2{font-size:1.3rem;margin:.9em 0 .4em}h3{font-size:1.05rem;margin:.6em 0 .3em}
+button,select,input,textarea{font:inherit;color:var(--tx)}
+button{background:var(--g);color:var(--bt);border:0;border-radius:10px;padding:10px 16px;cursor:pointer;min-height:44px;margin:3px 3px 3px 0}
+button.s{background:transparent;color:var(--g);border:1.5px solid var(--g)}
+button:disabled{opacity:.5;cursor:default}
+input:not([type=radio]):not([type=checkbox]),select,textarea{background:var(--card);border:1px solid var(--bd);border-radius:8px;padding:9px;width:100%;margin:4px 0}
+label{cursor:pointer}
+table{border-collapse:collapse;width:100%;font-size:.9rem}th,td{border-bottom:1px solid var(--bd);padding:6px;text-align:left}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin:10px 0}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(250px,1fr));gap:12px}
+.st{display:flex;flex-direction:column;gap:6px;transition:transform .15s}.st:hover{transform:translateY(-2px)}
+.ic{font-size:2.4rem}.mu{color:var(--mu);font-size:.92rem}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between}
+.tag{display:inline-block;border-radius:20px;padding:2px 10px;font-size:.82rem;background:var(--bd);color:var(--tx)}
+.au{border-color:var(--au)}
+.warn{background:rgba(184,134,11,.13);border:1px solid var(--au);border-radius:10px;padding:8px 12px;font-size:.92rem}
+.owl{border-left:5px solid var(--c)}
+.av{font-size:2rem;background:none;border:2px solid var(--bd);border-radius:50%;width:52px;height:52px;padding:0}.av.on{border-color:var(--c)}
+.dot{width:34px;height:34px;border-radius:50%;padding:0;border:3px solid var(--bd);min-height:0}.dot.on{border-color:var(--tx)}
+.part{cursor:pointer}.part:hover{opacity:.8}
+.flow{stroke-dasharray:8 8;fill:none;stroke-width:4}
+.run .flow{animation:mv 1s linear infinite}@keyframes mv{to{stroke-dashoffset:-16}}
+@media(prefers-reduced-motion:reduce){.run .flow{animation:none}.st{transition:none}}
+details{margin-top:6px}summary{cursor:pointer;color:var(--g)}
+.sc{overflow-x:auto}

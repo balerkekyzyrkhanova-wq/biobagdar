@@ -4,9 +4,10 @@ import {collection, doc, getDoc, getDocs, query, where, orderBy, setDoc, addDoc,
 import {auth, db, configured} from './firebase';
 import xylem from '../content/xylem.json';
 import bank from '../content/bank.json';
+import {Owl, Profile, StationMap, Topic, OWL, useProfile} from './Expedition';
 
-const box: any = {maxWidth: 900, margin: '0 auto', padding: 14, font: '17px/1.5 system-ui', color: '#12302a'};
-const card: any = {border: '1px solid #cfe3dc', borderRadius: 12, padding: 12, margin: '10px 0', background: '#fff'};
+const box: any = {maxWidth: 940, margin: '0 auto', padding: 14};
+const card: any = {border: '1px solid var(--bd)', borderRadius: 14, padding: 14, margin: '10px 0', background: 'var(--card)'};
 const msgOf = (e: any) => (e?.code === 'permission-denied' ? 'Нет доступа, либо срок или число попыток исчерпаны' : e?.message || 'Ошибка');
 const mk = (arr: any[]) => arr.map(d => ({id: d.id, ...d.data()}));
 
@@ -46,7 +47,7 @@ function Auth() {
 }
 
 function Student({uid, prof, reload}: any) {
-  const [code, setCode] = useState(''), [as, setAs] = useState<any[]>([]), [at, setAt] = useState<any[]>([]), [w, setW] = useState<any>(null), [err, setErr] = useState(''), [showD, setShowD] = useState(false), [showT, setShowT] = useState(false);
+  const [code, setCode] = useState(''), [as, setAs] = useState<any[]>([]), [at, setAt] = useState<any[]>([]), [w, setW] = useState<any>(null), [err, setErr] = useState(''), [showD, setShowD] = useState(false), [showT, setShowT] = useState(false), [showTopic, setShowTopic] = useState(false), [pf, setPf] = useProfile();
   const refresh = async () => {
     if (!prof.groupId) return;
     setAs(mk((await getDocs(query(collection(db, 'assignments'), where('groupId', '==', prof.groupId)))).docs));
@@ -66,23 +67,29 @@ function Student({uid, prof, reload}: any) {
   };
   if (!prof.groupId) return <div style={card}><h2>Присоединиться к группе</h2><input placeholder="Код группы" value={code} onChange={e => setCode(e.target.value)}/><button onClick={join}>Войти в группу</button><div>{err}</div></div>;
   if (w) return <Work a={w} uid={uid} prof={prof} onDone={() => { setW(null); refresh(); }}/>;
+  if (showTopic) return <><Owl text={OWL.topic}/><Topic onBack={() => setShowTopic(false)}/></>;
   if (showT) return <Trainer onBack={() => setShowT(false)}/>;
   if (showD) return <Diary uid={uid} as={as} at={at} onBack={() => setShowD(false)}/>;
   const nErr = Object.values(at.reduce((m: any, t: any) => { if (Array.isArray(t.wrong) && (!m[t.assignmentId] || m[t.assignmentId].n < t.n)) m[t.assignmentId] = t; return m; }, {})).reduce((n: number, t: any) => n + t.wrong.length, 0);
-  return <div><h2>{prof.name}, {prof.cls}</h2>
-    <div style={card}><button onClick={() => setShowD(true)}>📓 Дневник ошибок{nErr ? ` (вопросов для разбора: ${nErr})` : ''}</button> <button onClick={() => setShowT(true)}>🏆 Олимпиадный тренажёр</button></div>
+  return <div><h2><span style={{fontSize: '1.6rem'}}>{pf.av}</span> <span style={{color: pf.col}}>{prof.name}</span>, {prof.cls}</h2>
+    <Owl text={OWL.home}/>
+    {as.length > 0 && <h2>Задания от учителя</h2>}
     {as.map(a => { const mine = at.filter(t => t.assignmentId === a.id).sort((x, y) => x.n - y.n); return <div key={a.id} style={card}>
       <b>Тема: {a.topicId}</b> · {a.mode === 'control' ? 'контрольный' : 'тренировка'} · срок: {a.due || '—'} · попыток {mine.length}/{a.tries}
       <div><button disabled={mine.length >= a.tries} onClick={() => setW(a)}>{mine.length ? 'Новая попытка' : 'Начать'}</button></div>
       {mine.map(t => <div key={t.id}>Попытка {t.n}: {t.status}{t.score != null ? ` · ${t.score}/${t.max}` : ' · результат появится после проверки учителем'}{t.comments.map((c: string, i: number) => <div key={i}>💬 {c}</div>)}</div>)}</div>; })}
-    {!as.length && <div style={card}>Заданий пока нет.</div>}</div>;
+    {!as.length && <div style={card}>Заданий от учителя пока нет. Ты можешь изучать готовую тему на карте.</div>}
+    <StationMap onTopic={() => setShowTopic(true)} onTrainer={() => setShowT(true)} onDiary={() => setShowD(true)}/>
+    <Profile prof={pf} setProf={setPf}/>
+    {nErr > 0 && <div className="warn">Вопросов для разбора в дневнике ошибок: {nErr}</div>}</div>;
 }
 
 const IMGBASE = (import.meta as any).env.BASE_URL || './';
 function Ctx({q, prev}: any) {
   if (!q.ctx || (prev && prev.ctx === q.ctx)) return null;
-  return <div style={{background: '#f1f7f5', padding: 10, borderRadius: 8, marginBottom: 8, fontSize: 15, whiteSpace: 'pre-line'}}>{q.ctx}
-    {(q.img || []).map((im: any) => <figure key={im.src} style={{margin: '10px 0 0'}}><img src={IMGBASE + im.src} alt={im.cap} style={{maxWidth: '100%', height: 'auto', borderRadius: 6, background: '#fff'}}/><figcaption style={{fontSize: 13, color: '#4b635d'}}>{im.cap}</figcaption></figure>)}</div>;
+  return <div style={{background: 'var(--bg)', padding: 10, borderRadius: 8, marginBottom: 8, fontSize: 15, whiteSpace: 'pre-line'}}>{q.ctx}
+    {(q.img || []).map((im: any) => <figure key={im.src} style={{margin: '10px 0 0'}}><img src={IMGBASE + im.src} alt={im.cap} style={{maxWidth: '100%', height: 'auto', borderRadius: 6, background: '#fff'}}/><figcaption style={{fontSize: 13, color: 'var(--mu)'}}>{im.cap}</figcaption></figure>)}
+    {(q.img || []).length > 0 && <details><summary>Как читать рисунок</summary><div style={{fontSize: 14}}>1) Прочитай подпись и найди условные обозначения. 2) Определи, что отложено по осям или что обозначено стрелками и цветами, и в каких единицах. 3) Сравни опыт с контролем: что изменилось и что осталось прежним. 4) Отвечай только по тому, что видно на рисунке и сказано в условии, а не по догадке.</div></details>}</div>;
 }
 
 function Trainer({onBack}: any) {
@@ -95,7 +102,7 @@ function Trainer({onBack}: any) {
       setLoaded(true);
     })().catch(e => { setErr(msgOf(e)); setLoaded(true); });
   }, []);
-  return <div><button onClick={onBack}>← Назад</button><h2>🏆 Олимпиадный тренажёр</h2>
+  return <div><button onClick={onBack}>← Назад</button><h2>🏆 Олимпиадный тренажёр</h2><Owl text={OWL.trainer}/>
     <div style={card}>Задания из образцов олимпиады «Дарын» 2025 (не авторские). Они появляются здесь после того, как учитель подтвердит ключ. Проверка идёт по ключу, подтверждённому учителем.</div>
     <div style={{color: '#c2410c'}}>{err}</div>
     {!loaded ? <div>Загрузка…</div> : !qs.length ? <div style={card}>Пока нет заданий с подтверждённым ключом.</div> :
@@ -138,7 +145,7 @@ function Diary({uid, as, at, onBack}: any) {
   };
   const ansText = (q: any, v: any) => v === undefined ? 'без ответа' : q.type === 'tf' ? (v ? 'Верно' : 'Неверно') : q.options?.[v];
   const left = items.filter(i => !dr[i.key]?.done).length;
-  return <div><button onClick={onBack}>← Назад</button><h2>📓 Дневник ошибок</h2>
+  return <div><button onClick={onBack}>← Назад</button><h2>📓 Дневник ошибок</h2><Owl text={OWL.diary}/>
     <div><b>{msg}</b></div>
     {!loaded ? <div>Загрузка…</div> : !items.length ? <div style={card}>Пока нет ошибок для разбора. Дневник заполняется после того, как учитель проверит работу.</div> :
       <><div>Осталось разобрать: {left} из {items.length}</div>
