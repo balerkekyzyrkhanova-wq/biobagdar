@@ -183,17 +183,26 @@ function BankAdmin() {
     if (on) b.set(doc(db, 'bankKeys', q.id), {answer: ans}); else b.delete(doc(db, 'bankKeys', q.id));
     await b.commit();
   }, on ? 'Ключ подтверждён' : 'Подтверждение снято');
+  const confirmMatched = () => run(async () => {
+    const b = writeBatch(db); let n = 0;
+    items.forEach(q => { const k = keys[q.id]; if (q.official === undefined || !k || k.confirmed) return; n++;
+      b.update(doc(db, 'keys', q.id), {answer: q.official, confirmed: true, draft: false}); b.update(doc(db, 'questions', q.id), {confirmed: true}); b.set(doc(db, 'bankKeys', q.id), {answer: q.official}); });
+    if (!n) throw new Error('Нет заданий для подтверждения: загрузите задания банка или они уже подтверждены');
+    await b.commit();
+  }, 'Подтверждены все задания, ключи которых совпадают с загруженным файлом ответов');
+  const nMatch = items.filter(q => q.official !== undefined && keys[q.id] && !keys[q.id].confirmed).length;
   const nOk = Object.values(keys).filter((k: any) => k.confirmed).length;
   return <div style={card}><b>🏆 Банк олимпиады</b> · загружено {Object.keys(keys).length} из {items.length}, подтверждено учителем: {nOk} <button onClick={() => setOpen(!open)}>{open ? 'Свернуть' : 'Открыть'}</button>
     <div><b>{msg}</b></div>
     {open && <>
       <div style={{background: '#fff7ed', padding: 8, borderRadius: 8, margin: '8px 0'}}>Задания взяты из PDF олимпиады «Дарын» 2025 и не являются авторскими. Предварительный ключ (черновик) составлен Claude и <b>не является официальным</b>: проверьте каждый по оригиналу. Ученики видят задание в тренажёре только после вашего подтверждения; подтверждённые ключи открыты ученикам для самопроверки.</div>
       <button onClick={seedBank}>Загрузить задания банка ({items.length})</button>
+      {nMatch > 0 && <div style={{margin: '8px 0'}}><button onClick={() => { if (confirm(`Подтвердить ${nMatch} заданий, ключи которых совпадают с загруженным вами файлом ответов районного этапа?`)) confirmMatched(); }}>Подтвердить все совпавшие с файлом ответов ({nMatch})</button></div>}
       {items.map((q, i) => { const k = keys[q.id]; const cur = sel[q.id] ?? k?.answer;
         return <div key={q.id} style={{...card, background: k?.confirmed ? '#f0fdf4' : '#fff'}}>
           {q.ctx && (i === 0 || items[i - 1].ctx !== q.ctx) && <div style={{background: '#f1f7f5', padding: 8, borderRadius: 8, marginBottom: 8, fontSize: 15}}>{q.ctx}</div>}
           <div style={{fontSize: 13}}>{q.src}</div>
-          <div style={{fontSize: 13, color: k?.confirmed ? '#15803d' : '#c2410c'}}>{!k ? 'не загружено' : k.confirmed ? 'Ключ подтверждён учителем' : 'Ключ требует проверки учителем (отмечен черновик)'}</div>
+          <div style={{fontSize: 13, color: k?.confirmed ? '#15803d' : '#c2410c'}}>{!k ? 'не загружено' : k.confirmed ? 'Ключ подтверждён учителем' : 'Ключ требует проверки учителем (отмечен черновик)'}{q.official !== undefined && <span style={{color: '#475569'}}> · {cur === q.official ? 'совпадает с файлом ответов' : `в файле ответов: ${'ABCDE'[q.official]}`}</span>}</div>
           <b>{q.text}</b>
           {q.options.map((o: string, j: number) => <label key={j} style={{display: 'block'}}><input type="radio" name={'b_' + q.id} disabled={!k} checked={cur === j} onChange={() => setSel({...sel, [q.id]: j})}/> {o}</label>)}
           <button disabled={!k} onClick={() => setConfirm(q, true)}>Подтвердить ключ</button> {k?.confirmed && <button onClick={() => setConfirm(q, false)}>Снять подтверждение</button>}
