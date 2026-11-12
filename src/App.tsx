@@ -5,7 +5,7 @@ import {auth, db, configured} from './firebase';
 import xylem from '../content/xylem.json';
 import bank from '../content/bank.json';
 import {Results, badgesOf} from './Results';
-import {Owl, Profile, StationMap, Topic, OWL, useProfile} from './Expedition';
+import {Owl, Hero, Profile, StationMap, Topic, OWL, useProfile} from './Expedition';
 
 const box: any = {maxWidth: 940, margin: '0 auto', padding: 14};
 const card: any = {border: '1px solid var(--bd)', borderRadius: 14, padding: 14, margin: '10px 0', background: 'var(--card)'};
@@ -21,10 +21,10 @@ export default function App() {
     setR(true);
   };
   useEffect(() => (configured ? onAuthStateChanged(auth, load) : undefined), []);
-  if (!configured) return <div style={box}><h1>BioБағдар</h1><div style={card}>Деморежим: Firebase не настроен, данные не сохраняются.</div></div>;
+  if (!configured) return <div style={box}><Hero/><div style={card}>Деморежим: Firebase не настроен, данные не сохраняются.</div></div>;
   if (!ready) return <div style={box}>Загрузка…</div>;
-  return <div style={box}><h1>BioБағдар</h1>
-    {!u ? <Auth/> : <><button onClick={() => signOut(auth)}>Выйти</button>
+  return <div style={box}><Hero onOut={u ? () => signOut(auth) : undefined}/>
+    {!u ? <Auth/> : <>
       {teacher ? <Teacher uid={u.uid}/> : prof ? <Student uid={u.uid} prof={prof} reload={() => load(u)}/> : <div style={card}>Профиль не найден.</div>}</>}</div>;
 }
 
