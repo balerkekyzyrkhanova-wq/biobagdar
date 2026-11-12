@@ -4,6 +4,7 @@ import {collection, doc, getDoc, getDocs, query, where, orderBy, setDoc, addDoc,
 import {auth, db, configured} from './firebase';
 import xylem from '../content/xylem.json';
 import bank from '../content/bank.json';
+import {Results, badgesOf} from './Results';
 import {Owl, Profile, StationMap, Topic, OWL, useProfile} from './Expedition';
 
 const box: any = {maxWidth: 940, margin: '0 auto', padding: 14};
@@ -47,7 +48,7 @@ function Auth() {
 }
 
 function Student({uid, prof, reload}: any) {
-  const [code, setCode] = useState(''), [as, setAs] = useState<any[]>([]), [at, setAt] = useState<any[]>([]), [w, setW] = useState<any>(null), [err, setErr] = useState(''), [showD, setShowD] = useState(false), [showT, setShowT] = useState(false), [showTopic, setShowTopic] = useState(false), [pf, setPf] = useProfile();
+  const [code, setCode] = useState(''), [as, setAs] = useState<any[]>([]), [at, setAt] = useState<any[]>([]), [w, setW] = useState<any>(null), [err, setErr] = useState(''), [showD, setShowD] = useState(false), [showT, setShowT] = useState(false), [showTopic, setShowTopic] = useState(false), [showR, setShowR] = useState(false), [pf, setPf] = useProfile();
   const refresh = async () => {
     if (!prof.groupId) return;
     setAs(mk((await getDocs(query(collection(db, 'assignments'), where('groupId', '==', prof.groupId)))).docs));
@@ -68,11 +69,13 @@ function Student({uid, prof, reload}: any) {
   if (!prof.groupId) return <div style={card}><h2>Присоединиться к группе</h2><input placeholder="Код группы" value={code} onChange={e => setCode(e.target.value)}/><button onClick={join}>Войти в группу</button><div>{err}</div></div>;
   if (w) return <Work a={w} uid={uid} prof={prof} onDone={() => { setW(null); refresh(); }}/>;
   if (showTopic) return <><Owl text={OWL.topic}/><Topic onBack={() => setShowTopic(false)}/></>;
+  if (showR) return <Results as={as} at={at} onBack={() => setShowR(false)}/>;
   if (showT) return <Trainer onBack={() => setShowT(false)}/>;
   if (showD) return <Diary uid={uid} as={as} at={at} onBack={() => setShowD(false)}/>;
   const nErr = Object.values(at.reduce((m: any, t: any) => { if (Array.isArray(t.wrong) && (!m[t.assignmentId] || m[t.assignmentId].n < t.n)) m[t.assignmentId] = t; return m; }, {})).reduce((n: number, t: any) => n + t.wrong.length, 0);
   return <div><h2><span style={{fontSize: '1.6rem'}}>{pf.av}</span> <span style={{color: pf.col}}>{prof.name}</span>, {prof.cls}</h2>
     <Owl text={OWL.home}/>
+    <div className="card bar"><span>🏅 Значков: {badgesOf(at).filter(b => b.ok).length} из 4</span><button onClick={() => setShowR(true)}>📊 Мои результаты</button></div>
     {as.length > 0 && <h2>Задания от учителя</h2>}
     {as.map(a => { const mine = at.filter(t => t.assignmentId === a.id).sort((x, y) => x.n - y.n); return <div key={a.id} style={card}>
       <b>Тема: {a.topicId}</b> · {a.mode === 'control' ? 'контрольный' : 'тренировка'} · срок: {a.due || '—'} · попыток {mine.length}/{a.tries}
