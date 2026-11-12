@@ -235,7 +235,16 @@ function BankAdmin() {
 }
 
 function Teacher({uid}: any) {
-  const [gs, setGs] = useState<any[]>([]), [as, setAs] = useState<any[]>([]), [at, setAt] = useState<any[]>([]), [name, setName] = useState(''), [f, setF] = useState<any>({groupId: '', topicId: 'xylem', due: '', mode: 'training', tries: 2}), [cm, setCm] = useState<any>({}), [msg, setMsg] = useState('');
+  const [gs, setGs] = useState<any[]>([]), [as, setAs] = useState<any[]>([]), [at, setAt] = useState<any[]>([]), [name, setName] = useState(''), [f, setF] = useState<any>({groupId: '', topicId: 'xylem', due: '', mode: 'training', tries: 2}), [cm, setCm] = useState<any>({}), [msg, setMsg] = useState(''), [det, setDet] = useState<any>({});
+  const toggle = async (t: any) => {
+    if (det[t.id]) { const d = {...det}; delete d[t.id]; return setDet(d); }
+    try {
+      const a = as.find(x => x.id === t.assignmentId); const tp = a?.topicId;
+      const qs = mk((await getDocs(query(collection(db, 'questions'), where('topicId', '==', tp)))).docs).sort((x: any, y: any) => x.order - y.order);
+      const ks: any = {}; (await getDocs(query(collection(db, 'keys'), where('topicId', '==', tp)))).docs.forEach(k => { ks[k.id] = k.data(); });
+      setDet({...det, [t.id]: {qs, ks}});
+    } catch (e) { setMsg(msgOf(e)); }
+  };
   const refresh = async () => {
     setGs(mk((await getDocs(query(collection(db, 'groups'), where('teacherId', '==', uid)))).docs));
     setAs(mk((await getDocs(query(collection(db, 'assignments'), where('teacherId', '==', uid)))).docs));
@@ -270,6 +279,16 @@ function Teacher({uid}: any) {
       <input type="date" value={f.due} onChange={e => setF({...f, due: e.target.value})}/><select value={f.mode} onChange={e => setF({...f, mode: e.target.value})}><option value="training">Тренировка</option><option value="control">Контрольный</option></select>
       <input type="number" min={1} max={5} value={f.tries} onChange={e => setF({...f, tries: +e.target.value})}/><button onClick={() => act(assign, 'Назначено')}>Назначить</button></div>
     <h3>Работы</h3>{at.map(t => <div key={t.id} style={card}>{t.studentName} · попытка {t.n} · {t.status} · {t.score != null ? `${t.score}/${t.max}` : 'балл ещё не посчитан'}
+      <div><button className="s" onClick={() => toggle(t)}>{det[t.id] ? 'Скрыть ответы' : '👁 Посмотреть ответы'}</button></div>
+      {det[t.id] && <AnswerSheet t={t} qs={det[t.id].qs} ks={det[t.id].ks}/>}
       <textarea placeholder="Комментарий" value={cm[t.id] || ''} onChange={e => setCm({...cm, [t.id]: e.target.value})}/>
       <button onClick={() => act(() => review(t, false), 'Проверено')}>Посчитать балл и отметить «Проверено»</button> <button onClick={() => act(() => review(t, true), 'Назначена доработка')}>На доработку</button></div>)}</div>;
+}
+
+function AnswerSheet({t, qs, ks}: any) {
+  const tx = (q: any, v: any) => v === undefined || v === null ? 'без ответа' : q.type === 'tf' ? (v ? 'Верно' : 'Неверно') : q.options?.[v];
+  return <div style={{margin: '8px 0'}}>{qs.map((q: any, i: number) => { const v = t.answers?.[q.id], k = ks[q.id]?.answer, ok = v !== undefined && v === k;
+    return <div key={q.id} style={{borderTop: '1px solid var(--bd)', padding: '6px 0'}}><b>{i + 1}.</b> {q.text}
+      <div>Ответ ученика: <b style={{color: ok ? '#15803d' : '#c2410c'}}>{tx(q, v)}</b> {ok ? '✓' : '✗'}</div>
+      {!ok && <div className="mu">Ключ: {tx(q, k)}{ks[q.id]?.confirmed === false ? ' (ключ не подтверждён)' : ''}</div>}</div>; })}</div>;
 }
