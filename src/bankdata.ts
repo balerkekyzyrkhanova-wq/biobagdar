@@ -26,3 +26,5 @@ export const ALL_ITEMS: any[] = [...(bank as any).items, ...(vars as any).items]
 export const itemsOf = (stage: Stage, variant: number) => ALL_ITEMS.filter(q => q.stage === stage && q.variant === variant);
 export const maxOf = (qs: any[]) => qs.reduce((s, q) => s + (meta(q).pts), 0);
 export const EXCLUDED: any[] = (bank as any).excluded;
+
+export const TOPIC_NAMES: Record<string, string> = {xylem: 'Ксилема, флоэма и транспорт веществ', cell: 'Клетка: строение и функции'};

@@ -1,4 +1,5 @@
 import {vTitle, fmtDate} from './Olympiad';
+import {TOPIC_NAMES} from './bankdata';
 export function badgesOf(at: any[]) {
   const sc = at.filter(t => t.score != null && t.max);
   const byA: any = {}; sc.forEach(t => { (byA[t.assignmentId] = byA[t.assignmentId] || []).push(t); });
@@ -22,7 +23,7 @@ export function Results({as, at, ba = [], analysis, onBack}: any) {
       <div className="mu" style={{marginTop: 6}}>Разбор ответов — в тренажёре, в блоке «Мои решённые варианты».</div></div>
     {!as.length && <div className="card">Заданий от учителя пока нет.</div>}
     {as.map((a: any) => { const l = at.filter((t: any) => t.assignmentId === a.id).sort((x: any, y: any) => x.n - y.n);
-      return <div key={a.id} className="card"><b>Тема: {a.topicId}</b> <span className="tag">{a.mode === 'control' ? 'контрольный' : 'тренировка'}</span>
+      return <div key={a.id} className="card"><b>Тема: {TOPIC_NAMES[a.topicId] || a.topicId}</b> <span className="tag">{a.mode === 'control' ? 'контрольный' : 'тренировка'}</span>
         <div className="mu">Срок: {a.due || '—'} · попыток {l.length}/{a.tries}</div>
         {!l.length && <div>Ещё не начато.</div>}
         {l.map((t: any) => { const p = t.score != null && t.max ? Math.round(t.score / t.max * 100) : null;

@@ -61,3 +61,10 @@ details{margin-top:6px}summary{cursor:pointer;color:var(--g);font-weight:700}
 .pop{animation:pop .35s ease-out}@keyframes pop{from{transform:scale(.9);opacity:0}}
 @media(prefers-reduced-motion:reduce){.rays,.cloud,.vap,.swell,.hero .lf,.owlsvg .eye{animation:none}.st,button{transition:none}}
 @media(max-width:520px){.hero h1{font-size:1.7rem}.hero .lf{width:130px}}
+
+.crun .chl ellipse{animation:glow 1.6s ease-in-out infinite alternate}.crun .mit ellipse{animation:glow2 1s ease-in-out infinite alternate}
+@keyframes glow{from{fill:#22c55e}to{fill:#bef264}}@keyframes glow2{from{fill:#fdba74}to{fill:#fde68a}}
+.wat-in path,.wat-in circle{animation:inw 1.6s ease-in-out infinite}.wat-out path,.wat-out circle{animation:outw 1.6s ease-in-out infinite}
+@keyframes inw{0%{opacity:0}30%{opacity:1}100%{opacity:0;transform:translateX(18px)}}
+@keyframes outw{0%{opacity:0}30%{opacity:1}100%{opacity:0;transform:translateX(-18px)}}
+@media(prefers-reduced-motion:reduce){.crun .chl ellipse,.crun .mit ellipse,.wat-in path,.wat-in circle,.wat-out path,.wat-out circle{animation:none}}

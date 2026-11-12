@@ -43,9 +43,10 @@ export function Profile({prof, setProf}: any) {
     <div>Цвет: {COLS.map(c => <button key={c} className={'dot' + (prof.col === c ? ' on' : '')} style={{background: c}} aria-label={'Цвет ' + c} onClick={() => setProf({col: c})}/>)}</div></div>;
 }
 
-export function StationMap({onTopic, onTrainer, onDiary}: any) {
-  return <><h2>Карта экспедиции</h2><div className="grid">{STN.map((s, i) => { const on = i === 1 || i === 5; return <div key={s[1]} className={'card st ' + (on ? 'on' : 'off')} style={{'--sc': s[2]} as any}><div className="band"/><div className="ic" aria-hidden="true">{s[0]}</div><b>{s[1]}</b>
-    {i === 1 ? <><div className="mu">Готова 1 тема из 4 запланированных.</div><button onClick={onTopic}>Открыть тему «Ксилема и флоэма»</button></>
+export function StationMap({onTopic, onCell, onTrainer, onDiary}: any) {
+  return <><h2>Карта экспедиции</h2><div className="grid">{STN.map((s, i) => { const on = i === 0 || i === 1 || i === 5; return <div key={s[1]} className={'card st ' + (on ? 'on' : 'off')} style={{'--sc': s[2]} as any}><div className="band"/><div className="ic" aria-hidden="true">{s[0]}</div><b>{s[1]}</b>
+    {i === 0 ? <><div className="mu">Строение клетки, органоиды, осмос.</div><button onClick={onCell}>Открыть тему «Клетка»</button></>
+      : i === 1 ? <><div className="mu">Транспорт воды и сахаров в растении.</div><button onClick={onTopic}>Открыть тему «Ксилема и флоэма»</button></>
       : i === 5 ? <><div className="mu">Олимпиадные задания с рисунками и разбором.</div><button onClick={onTrainer}>🏆 Олимпиадный тренажёр</button></>
       : <><span className="tag">Скоро</span><div className="mu">Содержание в разработке</div></>}</div>; })}</div>
     <div className="card"><button className="s" onClick={onDiary}>📓 Дневник ошибок</button></div>
@@ -137,5 +138,88 @@ export const OWL: any = {
   home: 'Привет! Я Био. Выбери станцию на карте: пока готова «Лаборатория растений». Задания от учителя — ниже на этой странице.',
   topic: 'Читай теорию, затем нажимай на части схемы и запускай движение. Посмотри на график: сравнивай опыт с контролем.',
   trainer: 'Это задания олимпиады. Сначала внимательно прочитай условие и рассмотри рисунок, потом отвечай. После проверки прочитай разбор.',
+  cell: 'Нажимай на части клетки и переключай растительную и животную. Потом проведи опыт с осмосом: сравни воду и солёный раствор.',
   diary: 'Ошибка — это подсказка, что повторить. Выбери причину честно, так легче не повторять её.',
 };
+
+// ---------- Мир клетки ----------
+const CI: any = {
+  wall: ['Клеточная стенка (только у растений, грибов и бактерий): прочный каркас, у растений из целлюлозы. Она даёт форму и защищает; вода и растворы через неё проходят свободно.', '#2f7a3a'],
+  mem: ['Клеточная мембрана: тонкая плёнка, которая выбирает, какие вещества входят в клетку и выходят из неё. Есть у всех клеток.', '#5bb450'],
+  cyt: ['Цитоплазма: жидкое содержимое клетки. В ней расположены органоиды, и в ней идут многие реакции. Часто она медленно течёт — это движение цитоплазмы.', '#8a6d3b'],
+  nuc: ['Ядро: хранит наследственную информацию (ДНК) и управляет работой клетки.', '#7c5cff'],
+  vac: ['Вакуоль: у растений крупная, заполнена клеточным соком. Запасает воду и вещества и создаёт упругость клетки (тургор).', '#2a7fb8'],
+  chl: ['Хлоропласты (только у растений): здесь на свету идёт фотосинтез. Зелёный цвет им даёт хлорофилл.', '#15803d'],
+  mit: ['Митохондрии: здесь при дыхании высвобождается энергия из органических веществ. Они есть и у растений, и у животных.', '#c2410c'],
+  rib: ['Рибосомы: крошечные «фабрики», на которых синтезируются белки.', '#6b21a8'],
+};
+
+export function CellLab() {
+  const [kind, setKind] = useState<'plant' | 'animal'>('plant'), [run, setRun] = useState(false), [part, setPart] = useState('');
+  const pl = kind === 'plant';
+  const hl = (p: string) => (part === p ? {filter: 'drop-shadow(0 0 5px #000)'} : {});
+  const avail = pl ? ['wall', 'mem', 'cyt', 'nuc', 'vac', 'chl', 'mit', 'rib'] : ['mem', 'cyt', 'nuc', 'vac', 'mit', 'rib'];
+  const sel = (p: string) => { setPart(p); };
+  const circ = 'M200 60 a150 90 0 1 0 0.01 0';
+  return <div className={'card lab' + (run ? ' crun' : '')}><div className="tb"><b style={{flexBasis: '100%'}}>Лаборатория: клетка под микроскопом</b>
+    <button className={pl ? '' : 's'} onClick={() => { setKind('plant'); setPart(''); }}>🌿 Растительная клетка</button>
+    <button className={pl ? 's' : ''} onClick={() => { setKind('animal'); setPart(''); }}>🐾 Животная клетка</button>
+    <button className="s" onClick={() => setRun(!run)}>{run ? '⏸ Остановить' : '▶ Запустить жизнь клетки'}</button></div>
+    <svg viewBox="0 0 400 320" role="img" aria-label={pl ? 'Схема растительной клетки' : 'Схема животной клетки'} style={{background: '#101d2b'}}>
+      {pl ? <>
+        <g className="part" onClick={() => sel('wall')} style={hl('wall')}><rect x="14" y="14" width="372" height="292" rx="46" fill="#7fbf6e" stroke="#2f7a3a" strokeWidth="6"/></g>
+        <g className="part" onClick={() => sel('mem')} style={hl('mem')}><rect x="26" y="26" width="348" height="268" rx="38" fill="#eaf7d9" stroke="#5bb450" strokeWidth="4"/></g>
+        <g className="part" onClick={() => sel('cyt')} style={hl('cyt')}><rect x="34" y="34" width="332" height="252" rx="32" fill="#f4f9e6" opacity=".01"/></g>
+        <g className="part" onClick={() => sel('vac')} style={hl('vac')}><ellipse cx="150" cy="165" rx="92" ry="78" fill="#bfe6fb" stroke="#2a7fb8" strokeWidth="3"/><text x="150" y="170" textAnchor="middle" fontSize="12" fill="#17527a">вакуоль</text></g>
+        <g className="part" onClick={() => sel('nuc')} style={hl('nuc')}><circle cx="300" cy="100" r="38" fill="#ddd6fe" stroke="#7c5cff" strokeWidth="3"/><circle cx="306" cy="104" r="11" fill="#a78bfa"/><text x="300" y="150" textAnchor="middle" fontSize="12" fill="#4c1d95">ядро</text></g>
+        <g className="part chl" onClick={() => sel('chl')} style={hl('chl')}>{[[60, 70], [110, 50], [60, 250], [250, 255], [335, 205], [335, 250]].map(([x, y], i) => <g key={i}><ellipse cx={x} cy={y} rx="20" ry="11" fill="#22c55e" stroke="#15803d" strokeWidth="2"/><path d={`M${x - 11} ${y} h22 M${x - 9} ${y - 4} h18 M${x - 9} ${y + 4} h18`} stroke="#15803d" strokeWidth="1.2"/></g>)}</g>
+        <g className="part mit" onClick={() => sel('mit')} style={hl('mit')}>{[[270, 190], [255, 60], [90, 135]].map(([x, y], i) => <g key={i}><ellipse cx={x} cy={y} rx="19" ry="9" fill="#fdba74" stroke="#c2410c" strokeWidth="2"/><path d={`M${x - 12} ${y} q4 -6 8 0 t8 0 t8 0`} stroke="#c2410c" strokeWidth="1.3" fill="none"/></g>)}</g>
+      </> : <>
+        <g className="part" onClick={() => sel('mem')} style={hl('mem')}><path d="M60 150 C50 70 130 22 210 30 C300 24 365 80 352 160 C360 240 290 296 200 290 C110 298 40 240 60 150Z" fill="#fde7d4" stroke="#f59e6b" strokeWidth="5"/></g>
+        <g className="part" onClick={() => sel('cyt')} style={hl('cyt')}><path d="M76 150 C68 90 140 48 210 52 C290 46 340 94 332 160 C338 224 278 272 200 268 C120 274 64 224 76 150Z" fill="#fff4e8" opacity=".01"/></g>
+        <g className="part" onClick={() => sel('nuc')} style={hl('nuc')}><circle cx="215" cy="150" r="48" fill="#ddd6fe" stroke="#7c5cff" strokeWidth="3"/><circle cx="224" cy="156" r="14" fill="#a78bfa"/><text x="215" y="215" textAnchor="middle" fontSize="12" fill="#4c1d95">ядро</text></g>
+        <g className="part" onClick={() => sel('vac')} style={hl('vac')}>{[[110, 215], [300, 80], [310, 225]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="14" fill="#bfe6fb" stroke="#2a7fb8" strokeWidth="2"/>)}</g>
+        <g className="part mit" onClick={() => sel('mit')} style={hl('mit')}>{[[130, 110], [290, 160], [150, 245], [250, 250]].map(([x, y], i) => <g key={i}><ellipse cx={x} cy={y} rx="19" ry="9" fill="#fdba74" stroke="#c2410c" strokeWidth="2"/><path d={`M${x - 12} ${y} q4 -6 8 0 t8 0 t8 0`} stroke="#c2410c" strokeWidth="1.3" fill="none"/></g>)}</g>
+      </>}
+      <g className="part" onClick={() => sel('rib')} style={hl('rib')}>{(pl ? [[200, 255], [225, 270], [240, 150], [215, 230], [325, 150]] : [[150, 175], [160, 190], [270, 215], [250, 90], [175, 80]]).map(([x, y], i) => <circle key={i} cx={x} cy={y} r="3.5" fill="#7e22ce"/>)}</g>
+      {run && <g>{[0, 1, 2, 3, 4, 5].map(i => <circle key={i} r="4" fill="#fde047" stroke="#a16207" strokeWidth="1"><animateMotion dur="14s" begin={`${-i * 2.3}s`} repeatCount="indefinite" path={pl ? 'M200 44 h110 a30 30 0 0 1 30 30 v150 a30 30 0 0 1 -30 30 h-240 a30 30 0 0 1 -30 -30 v-150 a30 30 0 0 1 30 -30 z' : 'M210 44 C300 40 345 94 340 160 C346 226 286 276 200 272 C116 278 66 226 70 156 C66 92 130 44 210 44Z'}/></circle>)}</g>}
+    </svg>
+    <div style={{padding: '0 14px 14px'}}><div style={{display: 'flex', flexWrap: 'wrap', gap: 4, margin: '8px 0'}}>{avail.map(p => <button key={p} className={part === p ? '' : 's'} style={{minHeight: 36, padding: '4px 10px'}} onClick={() => sel(p)}>{CI[p][0].split(':')[0].split(' (')[0]}</button>)}</div>
+      <div className="warn" aria-live="polite">{part && avail.includes(part) ? <b style={{color: CI[part][1]}}>{CI[part][0]}</b> : 'Нажми на часть клетки на рисунке или на кнопку с названием органоида.'}</div>
+      <div className="warn" style={{marginTop: 8}}>{pl ? 'Растительная клетка: есть клеточная стенка, хлоропласты и крупная вакуоль.' : 'Животная клетка: нет клеточной стенки и хлоропластов, вакуоли мелкие.'}{run ? ' Жёлтые точки показывают движение цитоплазмы, а митохондрии и хлоропласты «работают».' : ''}</div>
+      <div className="mu" style={{marginTop: 6}}>Схема упрощена: размеры и число органоидов условные.</div></div></div>;
+}
+
+export function OsmosisLab() {
+  const [m, setM] = useState<'start' | 'water' | 'salt'>('start');
+  const sc = m === 'water' ? 1 : m === 'start' ? 0.9 : 0.58;
+  const txt = m === 'start' ? 'Клетка в обычных условиях. Выбери раствор, чтобы увидеть, что будет.' : m === 'water' ? 'В чистой воде растворённых веществ в клетке больше, чем снаружи, поэтому вода входит внутрь. Вакуоль набухает, содержимое прижимается к стенке — клетка упругая (тургор). Стенка не даёт ей лопнуть.' : 'В солёном растворе соли больше снаружи, поэтому вода выходит из клетки. Объём содержимого уменьшается, мембрана отходит от стенки. Это плазмолиз; клетка вянет.';
+  return <div className={'card lab os-' + m}><div className="tb"><b style={{flexBasis: '100%'}}>Опыт: осмос в растительной клетке</b>
+    <button className={m === 'water' ? '' : 's'} onClick={() => setM('water')}>💧 Чистая вода</button><button className={m === 'salt' ? '' : 's'} onClick={() => setM('salt')}>🧂 Солёный раствор</button><button className="s" onClick={() => setM('start')}>↩ Сначала</button></div>
+    <svg viewBox="0 0 400 250" role="img" aria-label="Растительная клетка в растворе: вода входит или выходит" style={{background: m === 'salt' ? '#f3e7b8' : '#cfeeff', transition: 'background 1s'}}>
+      {m === 'salt' && [[40, 40], [90, 200], [330, 60], [350, 190], [60, 120], [345, 125], [180, 30], [220, 225]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="3.5" fill="#a16207"/>)}
+      <rect x="100" y="40" width="200" height="170" rx="28" fill="#7fbf6e" stroke="#2f7a3a" strokeWidth="6"/>
+      <rect x="108" y="48" width="184" height="154" rx="22" fill="#eaf7d9"/>
+      <g style={{transformBox: 'fill-box', transformOrigin: 'center', transform: `scale(${sc})`, transition: 'transform 1.4s ease'}}><rect x="108" y="48" width="184" height="154" rx="22" fill="#bfe6fb" stroke="#5bb450" strokeWidth="4"/><circle cx="215" cy="110" r="22" fill="#ddd6fe" stroke="#7c5cff" strokeWidth="3"/></g>
+      {m !== 'start' && <g className={m === 'water' ? 'wat-in' : 'wat-out'}>{[[60, 125, 90], [340, 125, 310], [200, 18, 200]].map(([x, y, tx], i) => <g key={i}><path d={m === 'water' ? `M${x} ${y} H${tx}` : `M${tx} ${y} H${x}`} stroke="#2a7fb8" strokeWidth="4" strokeLinecap="round" markerEnd="url(#ar)"/><circle cx={x} cy={y} r="5" fill="#2aa7e0"/></g>)}</g>}
+      <defs><marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="5" markerHeight="5" orient="auto"><path d="M0 0 L10 5 L0 10z" fill="#2a7fb8"/></marker></defs>
+      <text x="200" y="238" textAnchor="middle" fontSize="12" fill="#12302a">{m === 'water' ? 'клетка в чистой воде' : m === 'salt' ? 'клетка в солёном растворе (3 %)' : 'клетка'}</text>
+    </svg>
+    <div style={{padding: '0 14px 14px'}}><div className="warn" aria-live="polite" style={{marginTop: 8}}>{txt}</div><div className="mu" style={{marginTop: 6}}>Осмос — движение воды через мембрану в сторону, где растворённых веществ больше.</div></div></div>;
+}
+
+export function CellTopic({onBack}: any) {
+  return <div><button className="s" onClick={onBack}>← К карте</button><h1>Клетка: строение и функции</h1><span className="tag">Станция «Мир клетки»</span>
+    <div className="card"><h3>Что я узнаю</h3>Из каких частей состоит клетка, чем растительная клетка отличается от животной и почему вода входит в клетку или выходит из неё.</div>
+    <div className="card"><h3>Клетка — основа жизни</h3>Все живые организмы состоят из клеток. Клетка — самая маленькая единица, которая может жить сама: питаться, расти, размножаться. Новые клетки появляются только из прежних клеток путём деления. Клетки видно только в микроскоп.
+      <h3>Из чего состоит клетка</h3>Снаружи — клеточная мембрана. Внутри — цитоплазма, в которой расположены органоиды: ядро, митохондрии, рибосомы и другие. У растений ещё есть клеточная стенка, хлоропласты и крупная вакуоль.
+      <h3>Чем растительная клетка отличается от животной</h3>Только у растительной клетки есть клеточная стенка, хлоропласты и крупная вакуоль. Митохондрии, ядро, рибосомы и мембрана есть у обеих.</div>
+    <CellLab/>
+    <div className="card"><h3>Как вещества попадают в клетку</h3>Мембрана пропускает не всё подряд. Воду она пропускает легко, и вода идёт туда, где растворённых веществ больше (осмос). Поэтому свежий салат, опущенный в воду, становится хрустящим, а посоленные огурцы выпускают сок.</div>
+    <OsmosisLab/>
+    <div className="card"><h3>Ключевые термины</h3><b>Органоид</b> — постоянная часть клетки с особой функцией. <b>Осмос</b> — движение воды через мембрану. <b>Тургор</b> — упругость клетки из-за давления содержимого на стенку. <b>Плазмолиз</b> — отход мембраны от стенки при потере воды.
+      <h3>Разобранная задача</h3>«Ломтики картофеля выдержали час в воде, в 1 % и в 3 % растворах соли. В воде их масса выросла, в 3 % — уменьшилась. Почему?» В воде вода входит в клетки (осмос), масса растёт. В 3 % растворе вне клеток соли больше, вода выходит, масса падает.
+      <h3>Типичные ошибки</h3>Думать, что у животных клеток есть стенка; путать хлоропласты (фотосинтез) и митохондрии (дыхание); считать, что соль «впитывается» и вода входит в клетку в солёном растворе.
+      <h3>Итог</h3>Ядро управляет, митохондрии дают энергию, хлоропласты делают органику на свету, мембрана выбирает, что пропустить. Следующий шаг — задание от учителя.</div>
+    <button className="s" onClick={onBack}>← К карте</button></div>;
+}
