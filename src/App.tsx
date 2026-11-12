@@ -78,13 +78,20 @@ function Student({uid, prof, reload}: any) {
     {!as.length && <div style={card}>Заданий пока нет.</div>}</div>;
 }
 
+const IMGBASE = (import.meta as any).env.BASE_URL || './';
+function Ctx({q, prev}: any) {
+  if (!q.ctx || (prev && prev.ctx === q.ctx)) return null;
+  return <div style={{background: '#f1f7f5', padding: 10, borderRadius: 8, marginBottom: 8, fontSize: 15, whiteSpace: 'pre-line'}}>{q.ctx}
+    {(q.img || []).map((im: any) => <figure key={im.src} style={{margin: '10px 0 0'}}><img src={IMGBASE + im.src} alt={im.cap} style={{maxWidth: '100%', height: 'auto', borderRadius: 6, background: '#fff'}}/><figcaption style={{fontSize: 13, color: '#4b635d'}}>{im.cap}</figcaption></figure>)}</div>;
+}
+
 function Trainer({onBack}: any) {
   const [qs, setQs] = useState<any[]>([]), [keys, setKeys] = useState<any>({}), [ans, setAns] = useState<any>({}), [chk, setChk] = useState<any>({}), [loaded, setLoaded] = useState(false), [err, setErr] = useState('');
   useEffect(() => {
     (async () => {
       const q = await getDocs(query(collection(db, 'questions'), where('topicId', '==', 'bank'), where('confirmed', '==', true)));
       setQs(mk(q.docs).sort((a: any, b: any) => a.order - b.order));
-      const k: any = {}; (await getDocs(collection(db, 'bankKeys'))).docs.forEach(d => { k[d.id] = d.data().answer; }); setKeys(k);
+      const k: any = {}; (await getDocs(collection(db, 'bankKeys'))).docs.forEach(d => { k[d.id] = d.data(); }); setKeys(k);
       setLoaded(true);
     })().catch(e => { setErr(msgOf(e)); setLoaded(true); });
   }, []);
@@ -93,11 +100,11 @@ function Trainer({onBack}: any) {
     <div style={{color: '#c2410c'}}>{err}</div>
     {!loaded ? <div>Загрузка…</div> : !qs.length ? <div style={card}>Пока нет заданий с подтверждённым ключом.</div> :
       qs.map((q, i) => <div key={q.id} style={card}>
-        {q.ctx && (i === 0 || qs[i - 1].ctx !== q.ctx) && <div style={{background: '#f1f7f5', padding: 8, borderRadius: 8, marginBottom: 8, fontSize: 15}}>{q.ctx}</div>}
+        <Ctx q={q} prev={qs[i - 1]}/>
         <div style={{fontSize: 13, color: '#4b635d'}}>{q.src}</div><b>{q.text}</b>
         {q.options.map((o: string, j: number) => <label key={j} style={{display: 'block'}}><input type="radio" name={q.id} checked={ans[q.id] === j} onChange={() => { setAns({...ans, [q.id]: j}); const c = {...chk}; delete c[q.id]; setChk(c); }}/> {o}</label>)}
         <button disabled={ans[q.id] === undefined} onClick={() => setChk({...chk, [q.id]: true})}>Проверить</button>
-        {chk[q.id] && <div style={{color: ans[q.id] === keys[q.id] ? '#15803d' : '#c2410c'}}>{ans[q.id] === keys[q.id] ? 'Верно' : 'Неверно'} (по ключу, подтверждённому учителем)</div>}
+        {chk[q.id] && <div style={{color: ans[q.id] === keys[q.id]?.answer ? '#15803d' : '#c2410c'}}>{ans[q.id] === keys[q.id]?.answer ? 'Верно' : 'Неверно'} (по ключу, подтверждённому учителем){keys[q.id]?.expl && <div style={{color: '#12302a', marginTop: 4}}>💡 {keys[q.id].expl}</div>}</div>}
       </div>)}
   </div>;
 }
@@ -174,22 +181,26 @@ function BankAdmin() {
   const run = async (fn: () => Promise<any>, ok: string) => { setMsg(''); try { await fn(); await load(); setMsg(ok); } catch (e) { setMsg(msgOf(e)); } };
   const seedBank = () => run(async () => {
     const b = writeBatch(db); let n = 0;
-    items.forEach((q, i) => { if (keys[q.id]) return; n++; const {answer, ...pub} = q; b.set(doc(db, 'questions', q.id), {...pub, topicId: 'bank', type: 'single', confirmed: false, order: i}); b.set(doc(db, 'keys', q.id), {answer, confirmed: false, draft: true, topicId: 'bank'}); });
-    if (n) await b.commit();
-  }, 'Банк загружен (уже существующие задания не менялись)');
+    items.forEach((q, i) => {
+      const {answer, official, expl, ...pub} = q;
+      if (keys[q.id]) { b.set(doc(db, 'questions', q.id), {...pub, topicId: 'bank', type: 'single', order: i}, {merge: true}); return; } // текст и порядок обновляем, подтверждение не трогаем
+      n++; b.set(doc(db, 'questions', q.id), {...pub, topicId: 'bank', type: 'single', confirmed: false, order: i}); b.set(doc(db, 'keys', q.id), {answer, confirmed: false, draft: official === undefined, topicId: 'bank'});
+    });
+    await b.commit(); setMsg(`Новых заданий: ${n}`);
+  }, 'Банк загружен: тексты и рисунки обновлены, ключи и подтверждения сохранены');
   const setConfirm = (q: any, on: boolean) => run(async () => {
     const ans = sel[q.id] ?? keys[q.id]?.answer; const b = writeBatch(db);
     b.update(doc(db, 'keys', q.id), {answer: ans, confirmed: on, draft: false}); b.update(doc(db, 'questions', q.id), {confirmed: on});
-    if (on) b.set(doc(db, 'bankKeys', q.id), {answer: ans}); else b.delete(doc(db, 'bankKeys', q.id));
+    if (on) b.set(doc(db, 'bankKeys', q.id), {answer: ans, expl: q.expl || ''}); else b.delete(doc(db, 'bankKeys', q.id));
     await b.commit();
   }, on ? 'Ключ подтверждён' : 'Подтверждение снято');
   const confirmMatched = () => run(async () => {
     const b = writeBatch(db); let n = 0;
     items.forEach(q => { const k = keys[q.id]; if (q.official === undefined || !k || k.confirmed) return; n++;
-      b.update(doc(db, 'keys', q.id), {answer: q.official, confirmed: true, draft: false}); b.update(doc(db, 'questions', q.id), {confirmed: true}); b.set(doc(db, 'bankKeys', q.id), {answer: q.official}); });
+      b.update(doc(db, 'keys', q.id), {answer: q.official, confirmed: true, draft: false}); b.update(doc(db, 'questions', q.id), {confirmed: true}); b.set(doc(db, 'bankKeys', q.id), {answer: q.official, expl: q.expl || ''}); });
     if (!n) throw new Error('Нет заданий для подтверждения: загрузите задания банка или они уже подтверждены');
     await b.commit();
-  }, 'Подтверждены все задания, ключи которых совпадают с загруженным файлом ответов');
+  }, 'Подтверждены все задания, ключи которых совпадают с загруженными файлами ответов');
   const nMatch = items.filter(q => q.official !== undefined && keys[q.id] && !keys[q.id].confirmed).length;
   const nOk = Object.values(keys).filter((k: any) => k.confirmed).length;
   return <div style={card}><b>🏆 Банк олимпиады</b> · загружено {Object.keys(keys).length} из {items.length}, подтверждено учителем: {nOk} <button onClick={() => setOpen(!open)}>{open ? 'Свернуть' : 'Открыть'}</button>
@@ -197,12 +208,12 @@ function BankAdmin() {
     {open && <>
       <div style={{background: '#fff7ed', padding: 8, borderRadius: 8, margin: '8px 0'}}>Задания взяты из PDF олимпиады «Дарын» 2025 и не являются авторскими. Предварительный ключ (черновик) составлен Claude и <b>не является официальным</b>: проверьте каждый по оригиналу. Ученики видят задание в тренажёре только после вашего подтверждения; подтверждённые ключи открыты ученикам для самопроверки.</div>
       <button onClick={seedBank}>Загрузить задания банка ({items.length})</button>
-      {nMatch > 0 && <div style={{margin: '8px 0'}}><button onClick={() => { if (confirm(`Подтвердить ${nMatch} заданий, ключи которых совпадают с загруженным вами файлом ответов районного этапа?`)) confirmMatched(); }}>Подтвердить все совпавшие с файлом ответов ({nMatch})</button></div>}
+      {nMatch > 0 && <div style={{margin: '8px 0'}}><button onClick={() => { if (confirm(`Подтвердить ${nMatch} заданий, ключи которых совпадают с загруженными вами файлами ответов (районный и областной этапы)?`)) confirmMatched(); }}>Подтвердить все совпавшие с файлом ответов ({nMatch})</button></div>}
       {items.map((q, i) => { const k = keys[q.id]; const cur = sel[q.id] ?? k?.answer;
         return <div key={q.id} style={{...card, background: k?.confirmed ? '#f0fdf4' : '#fff'}}>
-          {q.ctx && (i === 0 || items[i - 1].ctx !== q.ctx) && <div style={{background: '#f1f7f5', padding: 8, borderRadius: 8, marginBottom: 8, fontSize: 15}}>{q.ctx}</div>}
+          <Ctx q={q} prev={items[i - 1]}/>
           <div style={{fontSize: 13}}>{q.src}</div>
-          <div style={{fontSize: 13, color: k?.confirmed ? '#15803d' : '#c2410c'}}>{!k ? 'не загружено' : k.confirmed ? 'Ключ подтверждён учителем' : 'Ключ требует проверки учителем (отмечен черновик)'}{q.official !== undefined && <span style={{color: '#475569'}}> · {cur === q.official ? 'совпадает с файлом ответов' : `в файле ответов: ${'ABCDE'[q.official]}`}</span>}</div>
+          <div style={{fontSize: 13, color: k?.confirmed ? '#15803d' : '#c2410c'}}>{!k ? 'не загружено' : k.confirmed ? 'Ключ подтверждён учителем' : (q.official !== undefined ? 'Ключ из файла ответов, ждёт вашего подтверждения' : 'Ключ требует проверки учителем (отмечен черновик)')}{q.official !== undefined && <span style={{color: '#475569'}}> · {cur === q.official ? 'совпадает с файлом ответов' : `в файле ответов: ${'ABCDE'[q.official]}`}</span>}</div>
           <b>{q.text}</b>
           {q.options.map((o: string, j: number) => <label key={j} style={{display: 'block'}}><input type="radio" name={'b_' + q.id} disabled={!k} checked={cur === j} onChange={() => setSel({...sel, [q.id]: j})}/> {o}</label>)}
           <button disabled={!k} onClick={() => setConfirm(q, true)}>Подтвердить ключ</button> {k?.confirmed && <button onClick={() => setConfirm(q, false)}>Снять подтверждение</button>}
