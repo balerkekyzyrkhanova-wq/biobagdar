@@ -92,7 +92,7 @@ export function TeacherAnalytics({uid}: {uid: string}) {
     {open && <>{err && <div style={{color: '#c2410c'}}>{err}</div>}<button className="s" onClick={load}>Обновить</button>
       {!ready ? <div className="mu">Загрузка данных…</div> : <><h3>Класс в целом</h3><Bars stats={cls}/>
       <h3>Ученики</h3>{!per.length && <div className="mu">Пока нет сданных вариантов.</div>}
-      {per.map(p => <div key={p.id} className="bar" style={{borderTop: '1px solid var(--bd)', padding: '6px 0'}}><span><b>{p.name}</b> · общий результат {p.ov ?? '—'} %<div className="mu">Слабее всего: {p.st.filter(s => level(s) !== 'few').slice(0, 2).map(s => `${s.name} (${s.pct} %)`).join('; ') || '—'}</div></span><button className="s" onClick={() => setSel(sel === p.id ? '' : p.id)}>{sel === p.id ? 'Скрыть' : 'Подробнее'}</button></div>)}
+      {per.map(p => <div key={p.id} className="bar" style={{borderTop: '1px solid var(--bd)', padding: '6px 0'}}><span><b>{p.name}</b> · общий результат {p.ov ?? '—'} %<div className="mu">{(() => { const w = p.st.filter(s => ['weak', 'mid'].includes(level(s))).slice(0, 2); return w.length ? 'Подтянуть: ' + w.map(s => `${s.name} (${s.pct} %)`).join('; ') : 'Слабых тем не видно'; })()}</div></span><button className="s" onClick={() => setSel(sel === p.id ? '' : p.id)}>{sel === p.id ? 'Скрыть' : 'Подробнее'}</button></div>)}
       </>}
       {ready && cur && <div style={{...card, borderColor: 'var(--g)'}}><h3>{cur.name}</h3>
         <StudentCard sid={cur.id} name={cur.name} stats={cur.st} bank={bank.filter(t => t.studentId === cur.id).sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0))}/>
