@@ -260,7 +260,7 @@ function Teacher({uid}: any) {
     <div style={card}><button onClick={() => act(seed, 'Задания загружены')}>Загрузить задания (тема «xylem»)</button></div>
     <BankAdmin/>
     <BankResults/>
-    <TeacherAnalytics/>
+    <TeacherAnalytics uid={uid}/>
     <div style={card}><input placeholder="Название группы" value={name} onChange={e => setName(e.target.value)}/><button onClick={() => act(group, 'Группа создана')}>Создать группу</button>{gs.map(g => <div key={g.id}>{g.name}: код <b>{g.code}</b></div>)}</div>
     <div style={card}><select value={f.groupId} onChange={e => setF({...f, groupId: e.target.value})}><option value="">Группа</option>{gs.map(g => <option key={g.id} value={g.id}>{g.name}</option>)}</select>
       <input type="date" value={f.due} onChange={e => setF({...f, due: e.target.value})}/><select value={f.mode} onChange={e => setF({...f, mode: e.target.value})}><option value="training">Тренировка</option><option value="control">Контрольный</option></select>

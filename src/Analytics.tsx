@@ -69,16 +69,18 @@ function StudentCard({sid, name, stats, bank, onSaved}: any) {
 }
 
 // Блок для учителя: класс целиком и каждый ученик
-export function TeacherAnalytics() {
-  const [open, setOpen] = useState(false), [bank, setBank] = useState<any[]>([]), [xyl, setXyl] = useState<any[]>([]), [keys, setKeys] = useState<any>({}), [err, setErr] = useState(''), [sel, setSel] = useState('');
+export function TeacherAnalytics({uid}: {uid: string}) {
+  const [open, setOpen] = useState(false), [bank, setBank] = useState<any[]>([]), [xyl, setXyl] = useState<any[]>([]), [keys, setKeys] = useState<any>({}), [err, setErr] = useState(''), [sel, setSel] = useState(''), [ready, setReady] = useState(false);
   const load = async () => {
     setErr('');
+    const mkd = (d: any[]) => d.map(x => ({id: x.id, ...x.data()}));
+    const fail = (e: any) => setErr(e?.code === 'permission-denied' ? 'Нет доступа: обновите правила Firebase.' : e?.message || 'Ошибка');
     try {
-      const mkd = (d: any[]) => d.map(x => ({id: x.id, ...x.data()}));
-      setBank(mkd((await getDocs(collection(db, 'bankAttempts'))).docs));
-      setXyl(mkd((await getDocs(collection(db, 'attempts'))).docs));
       const k: any = {}; (await getDocs(query(collection(db, 'keys'), where('topicId', '==', 'bank')))).docs.forEach(d => { k[d.id] = d.data().answer; }); setKeys(k);
-    } catch (e: any) { setErr(e?.code === 'permission-denied' ? 'Нет доступа: обновите правила Firebase.' : e?.message || 'Ошибка'); }
+      setBank(mkd((await getDocs(collection(db, 'bankAttempts'))).docs));
+      setReady(true);
+    } catch (e) { fail(e); }
+    try { setXyl(mkd((await getDocs(query(collection(db, 'attempts'), where('teacherId', '==', uid)))).docs)); } catch (e) { fail(e); }
   };
   useEffect(() => { if (open) load(); }, [open]);
   const keyAns = (id: string) => keys[id];
@@ -88,10 +90,11 @@ export function TeacherAnalytics() {
   const cur = per.find(p => p.id === sel);
   return <div style={card}><b>🧭 Анализ по темам</b> <button onClick={() => setOpen(!open)}>{open ? 'Свернуть' : 'Открыть'}</button>
     {open && <>{err && <div style={{color: '#c2410c'}}>{err}</div>}<button className="s" onClick={load}>Обновить</button>
-      <h3>Класс в целом</h3><Bars stats={cls}/>
+      {!ready ? <div className="mu">Загрузка данных…</div> : <><h3>Класс в целом</h3><Bars stats={cls}/>
       <h3>Ученики</h3>{!per.length && <div className="mu">Пока нет сданных вариантов.</div>}
       {per.map(p => <div key={p.id} className="bar" style={{borderTop: '1px solid var(--bd)', padding: '6px 0'}}><span><b>{p.name}</b> · общий результат {p.ov ?? '—'} %<div className="mu">Слабее всего: {p.st.filter(s => level(s) !== 'few').slice(0, 2).map(s => `${s.name} (${s.pct} %)`).join('; ') || '—'}</div></span><button className="s" onClick={() => setSel(sel === p.id ? '' : p.id)}>{sel === p.id ? 'Скрыть' : 'Подробнее'}</button></div>)}
-      {cur && <div style={{...card, borderColor: 'var(--g)'}}><h3>{cur.name}</h3>
+      </>}
+      {ready && cur && <div style={{...card, borderColor: 'var(--g)'}}><h3>{cur.name}</h3>
         <StudentCard sid={cur.id} name={cur.name} stats={cur.st} bank={bank.filter(t => t.studentId === cur.id).sort((a, b) => (a.createdAt?.seconds || 0) - (b.createdAt?.seconds || 0))}/>
         <div className="mu">Последний вариант: {fmtDate(bank.filter(t => t.studentId === cur.id).sort((a, b) => (b.createdAt?.seconds || 0) - (a.createdAt?.seconds || 0))[0]?.createdAt)}</div></div>}</>}</div>;
 }
