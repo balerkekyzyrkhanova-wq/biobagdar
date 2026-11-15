@@ -31,6 +31,9 @@ const Flower3D = lazy(() => import('./Flower3D'));
 const Vegetative = lazy(() => import('./Flower3D').then(m => ({default: m.Vegetative})));
 const PollSort = lazy(() => import('./Flower3D').then(m => ({default: m.PollSort})));
 const TreeRings = lazy(() => import('./Flower3D').then(m => ({default: m.TreeRings})));
+const RespTypes = lazy(() => import('./AnimArt').then(m => ({default: m.RespTypes})));
+const ExcrTypes = lazy(() => import('./AnimArt').then(m => ({default: m.ExcrTypes})));
+const OrganQuiz = lazy(() => import('./AnimArt').then(m => ({default: m.OrganQuiz})));
 const Brain3D = lazy(() => import('./Brain3D'));
 const Map3D = lazy(() => import('./Map3D'));
 const Succ3D = lazy(() => import('./Succ3D'));
@@ -95,7 +98,7 @@ export const STATIONS: {desc: string; topics: TopicDef[]}[] = [
   {desc: 'Классы, сердце, дыхание, движение и развитие.', topics: [
     {id: 'animals', title: 'Классификация и классы животных', par: '§8–10', ready: true},
     {id: 'heart', title: 'Кровеносная система и сердце', par: '§21', ready: true},
-    {id: 'animresp', title: 'Дыхание и выделение у животных', par: '§26, 31'},
+    {id: 'animresp', title: 'Дыхание и выделение у животных', par: '§26, 31', ready: true},
     {id: 'animmove', title: 'Движение и развитие животных', par: '§34, 56–57'}]},
   {desc: 'Дыхание, нервная система, рефлексы, сон и память.', topics: [
     {id: 'human', title: 'Дыхание человека', par: '§27–28', ready: true},
@@ -128,7 +131,7 @@ export function StationPage({i, onBack, onOpen}: any) {
 
 export function TopicView({id, onBack}: any) {
   return id === 'cell' ? <CellTopic onBack={onBack}/> : id === 'xylem' ? <Topic onBack={onBack}/> : id === 'animals' ? <AnimalTopic part="classes" onBack={onBack}/> : id === 'heart' ? <AnimalTopic part="heart" onBack={onBack}/>
-    : id === 'human' ? <HumanTopic part="breath" onBack={onBack}/> : id === 'food' ? <HumanTopic part="food" onBack={onBack}/> : id === 'eco' ? <EcoTopic onBack={onBack}/> : id === 'photo' ? <PhotoTopic onBack={onBack}/> : id === 'ecofact' ? <FactorTopic onBack={onBack}/> : id === 'success' ? <SuccTopic onBack={onBack}/> : id === 'redbook' ? <RedTopic onBack={onBack}/> : id === 'nerve' ? <NerveTopic onBack={onBack}/> : id === 'reflex' ? <ReflexTopic onBack={onBack}/> : id === 'sleep' ? <SleepTopic onBack={onBack}/> : id === 'chem' ? <ChemTopic onBack={onBack}/> : id === 'dna' ? <DnaTopic onBack={onBack}/> : id === 'micro' ? <MicroTopic onBack={onBack}/> : id === 'plantresp' ? <PlantRespTopic onBack={onBack}/> : id === 'plantrepro' ? <PlantReproTopic onBack={onBack}/> : null;
+    : id === 'human' ? <HumanTopic part="breath" onBack={onBack}/> : id === 'food' ? <HumanTopic part="food" onBack={onBack}/> : id === 'eco' ? <EcoTopic onBack={onBack}/> : id === 'photo' ? <PhotoTopic onBack={onBack}/> : id === 'ecofact' ? <FactorTopic onBack={onBack}/> : id === 'success' ? <SuccTopic onBack={onBack}/> : id === 'redbook' ? <RedTopic onBack={onBack}/> : id === 'nerve' ? <NerveTopic onBack={onBack}/> : id === 'reflex' ? <ReflexTopic onBack={onBack}/> : id === 'sleep' ? <SleepTopic onBack={onBack}/> : id === 'chem' ? <ChemTopic onBack={onBack}/> : id === 'dna' ? <DnaTopic onBack={onBack}/> : id === 'micro' ? <MicroTopic onBack={onBack}/> : id === 'plantresp' ? <PlantRespTopic onBack={onBack}/> : id === 'plantrepro' ? <PlantReproTopic onBack={onBack}/> : id === 'animresp' ? <AnimRespTopic onBack={onBack}/> : null;
 }
 
 const PI: any = {
@@ -234,6 +237,7 @@ export const OWL: any = {
   micro: 'Рассмотри бактерию, вирус и бактериофаг в 3D. Потом проверь, как быстро бактерии размножаются в тепле и в холодильнике.',
   plantresp: 'Переключай день и ночь и следи за стрелками газов. Потом проведи опыт со свечой и реши, какие семена дышат.',
   plantrepro: 'Сначала изучи части цветка, потом открой «Опыление и оплодотворение» и пройди шесть шагов по порядку.',
+  animresp: 'Листай органы дыхания по порядку и следи за точками кислорода. Потом так же пройди органы выделения.',
   diary: 'Ошибка — это подсказка, что повторить. Выбери причину честно, так легче не повторять её.',
 };
 
@@ -644,5 +648,24 @@ export function PlantReproTopic({onBack}: any) {
     <div className="card"><h3>Ключевые термины</h3><b>Вегетативное размножение</b> — размножение частями тела. <b>Опыление</b> — перенос пыльцы на рыльце. <b>Оплодотворение</b> — слияние половых клеток. <b>Спермий</b> — мужская половая клетка растений. <b>Эндосперм</b> — запас питательных веществ в семени. <b>Камбий</b> — образовательная ткань, дающая рост в толщину. <b>Онтогенез</b> — индивидуальное развитие.
       <h3>Типичные ошибки</h3>Путать опыление и оплодотворение (сначала опыление, потом оплодотворение); считать, что плод развивается из семязачатка (из него — семя, а плод — из завязи); думать, что оба спермия сливаются с яйцеклеткой.
       <h3>Итог</h3>Растения размножаются бесполым и половым способами, а растут всю жизнь благодаря образовательной ткани. Следующий шаг — задание от учителя.</div>
+    <button className="s" onClick={onBack}>← К темам станции</button></div>;
+}
+
+export function AnimRespTopic({onBack}: any) {
+  return <div><button className="s" onClick={onBack}>← К темам станции</button><h1>Дыхание и выделение у животных</h1><span className="tag">Станция «Мир животных»</span>
+    <div className="card"><h3>Что я узнаю</h3>Какими органами дышат разные животные и почему, как усложнялись лёгкие у позвоночных, какие органы удаляют из организма ненужные вещества.</div>
+    <div className="card"><h3>Зачем животным органы дыхания</h3>Каждой клетке нужен кислород, чтобы получать энергию из питательных веществ, и нужно удалять углекислый газ. Мелкие животные обмениваются газами через поверхность тела. Крупным этого мало: у них появились специальные органы с большой, тонкой и влажной поверхностью, густо снабжённой кровеносными сосудами. В воде это жабры, на суше — трахеи и лёгкие.</div>
+    <Suspense fallback={<div className="card">Загружаю…</div>}><RespTypes/></Suspense>
+    <div className="card"><h3>Сравни органы дыхания</h3>
+      <div className="sc"><table><thead><tr><th>Животные</th><th>Органы дыхания</th><th>Особенность</th></tr></thead><tbody>
+        <tr><td>Простейшие, гидра, черви</td><td>поверхность тела</td><td>нужна влажная кожа</td></tr><tr><td>Рыбы, раки, водные моллюски</td><td>жабры</td><td>кислород из воды</td></tr>
+        <tr><td>Насекомые</td><td>трахеи</td><td>воздух доходит до органов без участия крови</td></tr><tr><td>Земноводные</td><td>лёгкие-мешки и кожа; у головастиков жабры</td><td>кожа всегда влажная</td></tr>
+        <tr><td>Пресмыкающиеся</td><td>ячеистые лёгкие</td><td>кожа сухая, в дыхании не участвует</td></tr><tr><td>Птицы</td><td>губчатые лёгкие и воздушные мешки</td><td>двойное дыхание, нужно для полёта</td></tr>
+        <tr><td>Млекопитающие</td><td>альвеолярные лёгкие</td><td>есть диафрагма</td></tr></tbody></table></div></div>
+    <div className="card"><h3>Зачем нужно выделение</h3>В клетках при обмене веществ образуются ненужные и ядовитые продукты, особенно при расщеплении белков. Если они накапливаются, организм отравляется. Органы выделения выводят их наружу вместе с лишней водой и солями и поддерживают постоянный состав жидкостей тела. Углекислый газ удаляется через органы дыхания, часть веществ — через кожу (пот).</div>
+    <Suspense fallback={null}><ExcrTypes/><OrganQuiz/></Suspense>
+    <div className="card"><h3>Ключевые термины</h3><b>Газообмен</b> — поглощение кислорода и выделение углекислого газа. <b>Жабры</b> — органы дыхания в воде. <b>Трахеи</b> — воздушные трубочки насекомых. <b>Дыхальца</b> — отверстия трахей. <b>Альвеолы</b> — лёгочные пузырьки. <b>Выделение</b> — удаление продуктов обмена веществ. <b>Почки</b> — органы, фильтрующие кровь.
+      <h3>Типичные ошибки</h3>Считать, что рыбы дышат водой (они дышат кислородом, растворённым в воде); думать, что у насекомых кислород переносит кровь; путать органы выделения с органами пищеварения (непереваренные остатки пищи — это не выделение).
+      <h3>Итог</h3>Чем сложнее и активнее животное, тем больше поверхность его органов дыхания и тем совершеннее органы выделения. Следующий шаг — задание от учителя.</div>
     <button className="s" onClick={onBack}>← К темам станции</button></div>;
 }
