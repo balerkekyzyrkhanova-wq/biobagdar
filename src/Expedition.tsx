@@ -89,7 +89,7 @@ export function StationPage({i, onBack, onOpen}: any) {
   return <div><button className="s" onClick={onBack}>← К карте</button><h1><span aria-hidden="true">{s[0]}</span> {s[1]}</h1><div className="mu">{st.desc}</div>
     <div className="tl">{st.topics.map((t, n) => <div key={t.id} className={'card tp' + (t.ready ? '' : ' off')} style={{'--sc': s[2]} as any}>
       <div className="num" aria-hidden="true">{t.extra ? '+' : n + 1}</div>
-      <div className="tx"><b>{t.title}</b><div className="mu">{t.par}{t.extra ? ' · нет в программе 7 класса' : ''}</div></div>
+      <div className="tx"><b>{t.title}</b></div>
       {t.ready ? <button onClick={() => onOpen(t.id)}>Открыть</button> : <span className="tag">Скоро</span>}</div>)}</div></div>;
 }
 
@@ -322,7 +322,7 @@ export function ClassTabs() {
 }
 
 export function AnimalTopic({onBack, part}: any) {
-  if (part === 'heart') return <div><button className="s" onClick={onBack}>← К темам станции</button><h1>Кровеносная система и сердце</h1><span className="tag">Станция «Мир животных» · §21</span>
+  if (part === 'heart') return <div><button className="s" onClick={onBack}>← К темам станции</button><h1>Кровеносная система и сердце</h1><span className="tag">Станция «Мир животных»</span>
     <div className="card"><h3>Что я узнаю</h3>Зачем животным кровеносная система, как устроено сердце у разных классов позвоночных и в каком порядке кровь проходит по камерам сердца.</div>
     <Suspense fallback={<div className="card">Загружаю 3D-модель сердца…</div>}><Heart3D/></Suspense>
     <details className="card"><summary>Плоская схема сердца (если 3D не работает)</summary><HeartLab/></details>
@@ -332,7 +332,7 @@ export function AnimalTopic({onBack, part}: any) {
       <h3>Типичные ошибки</h3>Считать, что по артериям всегда течёт артериальная кровь (по лёгочной артерии течёт венозная); путать артерии и вены: название зависит от направления — от сердца или к сердцу.
       <h3>Итог</h3>Чем полнее разделены артериальная и венозная кровь, тем активнее животное. Следующий шаг — задание от учителя.</div>
     <button className="s" onClick={onBack}>← К темам станции</button></div>;
-  return <div><button className="s" onClick={onBack}>← К темам станции</button><h1>Классификация и классы животных</h1><span className="tag">Станция «Мир животных» · §8–10</span>
+  return <div><button className="s" onClick={onBack}>← К темам станции</button><h1>Классификация и классы животных</h1><span className="tag">Станция «Мир животных»</span>
     <div className="card"><h3>Что я узнаю</h3>Как животных делят на группы и чем различаются основные классы позвоночных и беспозвоночных.</div>
     <div className="card"><h3>Зачем делить животных на группы</h3>Животных миллионы видов. Чтобы в них разобраться, учёные сравнивают строение и образ жизни и объединяют похожих в группы: типы и классы. Главное деление — на беспозвоночных (нет позвоночника: членистоногие, моллюски, черви) и позвоночных (есть внутренний скелет с позвоночником: рыбы, земноводные, пресмыкающиеся, птицы, млекопитающие).
       <h3>Как читать признаки</h3>Для каждого класса запоминай пять признаков: покровы, дыхание, сердце, температура тела, размножение. Они связаны между собой: например, у птиц высокий обмен веществ требует четырёхкамерного сердца и постоянной температуры тела.</div>
@@ -346,7 +346,7 @@ export function AnimalTopic({onBack, part}: any) {
 }
 
 export function HumanTopic({onBack, part}: any) {
-  if (part === 'food') return <div><button className="s" onClick={onBack}>← К темам станции</button><h1>Пищеварение</h1><span className="tag">Станция «Организм человека» · дополнительная тема</span>
+  if (part === 'food') return <div><button className="s" onClick={onBack}>← К темам станции</button><h1>Пищеварение</h1><span className="tag">Станция «Организм человека»</span>
     <div className="card"><h3>Что я узнаю</h3>По каким органам и в каком порядке проходит пища и что происходит в каждом отделе.</div>
     <Suspense fallback={<div className="card">Загружаю 3D-модель…</div>}><Human3D only="food"/></Suspense>
     <div className="card"><h3>Пищеварительная система</h3>Путь пищи: ротовая полость → глотка → пищевод → желудок → тонкая кишка → толстая кишка. В ротовой полости пища измельчается, слюна начинает расщеплять крахмал. В желудке сок с соляной кислотой и пепсином расщепляет белки. В тонкой кишке пищу доводят до конца желчь (печень) и сок поджелудочной железы, а питательные вещества всасываются в кровь. В толстой кишке всасывается вода.
@@ -354,7 +354,7 @@ export function HumanTopic({onBack, part}: any) {
       <h3>Типичные ошибки</h3>Считать, что желчь расщепляет белки (она помогает с жирами); считать, что большая часть питательных веществ всасывается в толстой кишке (в тонкой).
       <h3>Итог</h3>Пищеварение — цепочка органов, у каждого своя работа.</div>
     <button className="s" onClick={onBack}>← К темам станции</button></div>;
-  return <div><button className="s" onClick={onBack}>← К темам станции</button><h1>Дыхание человека</h1><span className="tag">Станция «Организм человека» · §27–28</span>
+  return <div><button className="s" onClick={onBack}>← К темам станции</button><h1>Дыхание человека</h1><span className="tag">Станция «Организм человека»</span>
     <div className="card"><h3>Что я узнаю</h3>Как воздух попадает в лёгкие, как работает диафрагма, где происходит газообмен и как беречь органы дыхания.</div>
     <Suspense fallback={<div className="card">Загружаю 3D-модель…</div>}><Human3D only="breath"/></Suspense>
     <div className="card"><h3>Дыхательная система</h3>Путь воздуха: носовая полость → глотка → гортань → трахея → бронхи → альвеолы. В носу воздух согревается и очищается. Лёгкие состоят из миллионов альвеол — тонкостенных пузырьков, оплетённых капиллярами. Здесь кислород переходит из воздуха в кровь, а углекислый газ — из крови в воздух.
