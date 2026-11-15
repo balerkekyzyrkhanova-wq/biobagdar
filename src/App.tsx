@@ -9,6 +9,7 @@ import human from '../content/human.json';
 import ecokz from '../content/ecokz.json';
 import photo from '../content/photo.json';
 import ecofact from '../content/ecofact.json';
+import success from '../content/success.json';
 import {TeacherAnalytics, MyAnalysis} from './Analytics';
 import {topicStats} from './analytics';
 import {Ctx, Trainer, BankAttemptsList, vTitle, fmtDate} from './Olympiad';
@@ -252,7 +253,7 @@ function Teacher({uid}: any) {
   };
   useEffect(() => { refresh(); }, []);
   const act = async (fn: () => Promise<any>, ok: string) => { setMsg(''); try { await fn(); setMsg(ok); refresh(); } catch (e) { setMsg(msgOf(e)); } };
-  const SETS: any = {xylem, cell, animals, human, eco: ecokz, photo, ecofact};
+  const SETS: any = {xylem, cell, animals, human, eco: ecokz, photo, ecofact, success};
   const seed = async (tp: string) => {
     const have = await getDocs(query(collection(db, 'keys'), where('topicId', '==', tp))); const ex = new Set(have.docs.map(d => d.id));
     const b = writeBatch(db);
