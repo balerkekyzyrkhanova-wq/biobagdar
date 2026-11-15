@@ -27,6 +27,10 @@ const GasDay = lazy(() => import('./RespArt').then(m => ({default: m.GasDay})));
 const CandleLab = lazy(() => import('./RespArt').then(m => ({default: m.CandleLab})));
 const ProcSort = lazy(() => import('./RespArt').then(m => ({default: m.ProcSort})));
 const Excrete = lazy(() => import('./RespArt').then(m => ({default: m.Excrete})));
+const Flower3D = lazy(() => import('./Flower3D'));
+const Vegetative = lazy(() => import('./Flower3D').then(m => ({default: m.Vegetative})));
+const PollSort = lazy(() => import('./Flower3D').then(m => ({default: m.PollSort})));
+const TreeRings = lazy(() => import('./Flower3D').then(m => ({default: m.TreeRings})));
 const Brain3D = lazy(() => import('./Brain3D'));
 const Map3D = lazy(() => import('./Map3D'));
 const Succ3D = lazy(() => import('./Succ3D'));
@@ -87,7 +91,7 @@ export const STATIONS: {desc: string; topics: TopicDef[]}[] = [
     {id: 'xylem', title: 'Транспорт веществ: ксилема и флоэма', par: '§16–20', ready: true},
     {id: 'photo', title: 'Лист и фотосинтез', par: '§22–23, 33', ready: true},
     {id: 'plantresp', title: 'Дыхание и выделение у растений', par: '§25, 30', ready: true},
-    {id: 'plantrepro', title: 'Размножение и рост растений', par: '§52–55, 58–59'}]},
+    {id: 'plantrepro', title: 'Размножение и рост растений', par: '§52–55, 58–59', ready: true}]},
   {desc: 'Классы, сердце, дыхание, движение и развитие.', topics: [
     {id: 'animals', title: 'Классификация и классы животных', par: '§8–10', ready: true},
     {id: 'heart', title: 'Кровеносная система и сердце', par: '§21', ready: true},
@@ -124,7 +128,7 @@ export function StationPage({i, onBack, onOpen}: any) {
 
 export function TopicView({id, onBack}: any) {
   return id === 'cell' ? <CellTopic onBack={onBack}/> : id === 'xylem' ? <Topic onBack={onBack}/> : id === 'animals' ? <AnimalTopic part="classes" onBack={onBack}/> : id === 'heart' ? <AnimalTopic part="heart" onBack={onBack}/>
-    : id === 'human' ? <HumanTopic part="breath" onBack={onBack}/> : id === 'food' ? <HumanTopic part="food" onBack={onBack}/> : id === 'eco' ? <EcoTopic onBack={onBack}/> : id === 'photo' ? <PhotoTopic onBack={onBack}/> : id === 'ecofact' ? <FactorTopic onBack={onBack}/> : id === 'success' ? <SuccTopic onBack={onBack}/> : id === 'redbook' ? <RedTopic onBack={onBack}/> : id === 'nerve' ? <NerveTopic onBack={onBack}/> : id === 'reflex' ? <ReflexTopic onBack={onBack}/> : id === 'sleep' ? <SleepTopic onBack={onBack}/> : id === 'chem' ? <ChemTopic onBack={onBack}/> : id === 'dna' ? <DnaTopic onBack={onBack}/> : id === 'micro' ? <MicroTopic onBack={onBack}/> : id === 'plantresp' ? <PlantRespTopic onBack={onBack}/> : null;
+    : id === 'human' ? <HumanTopic part="breath" onBack={onBack}/> : id === 'food' ? <HumanTopic part="food" onBack={onBack}/> : id === 'eco' ? <EcoTopic onBack={onBack}/> : id === 'photo' ? <PhotoTopic onBack={onBack}/> : id === 'ecofact' ? <FactorTopic onBack={onBack}/> : id === 'success' ? <SuccTopic onBack={onBack}/> : id === 'redbook' ? <RedTopic onBack={onBack}/> : id === 'nerve' ? <NerveTopic onBack={onBack}/> : id === 'reflex' ? <ReflexTopic onBack={onBack}/> : id === 'sleep' ? <SleepTopic onBack={onBack}/> : id === 'chem' ? <ChemTopic onBack={onBack}/> : id === 'dna' ? <DnaTopic onBack={onBack}/> : id === 'micro' ? <MicroTopic onBack={onBack}/> : id === 'plantresp' ? <PlantRespTopic onBack={onBack}/> : id === 'plantrepro' ? <PlantReproTopic onBack={onBack}/> : null;
 }
 
 const PI: any = {
@@ -229,6 +233,7 @@ export const OWL: any = {
   dna: 'Раскрути спираль в лесенку и нажимай на ступеньки. Найди правило, по которому соединяются основания, и дострой вторую цепь сам.',
   micro: 'Рассмотри бактерию, вирус и бактериофаг в 3D. Потом проверь, как быстро бактерии размножаются в тепле и в холодильнике.',
   plantresp: 'Переключай день и ночь и следи за стрелками газов. Потом проведи опыт со свечой и реши, какие семена дышат.',
+  plantrepro: 'Сначала изучи части цветка, потом открой «Опыление и оплодотворение» и пройди шесть шагов по порядку.',
   diary: 'Ошибка — это подсказка, что повторить. Выбери причину честно, так легче не повторять её.',
 };
 
@@ -618,5 +623,26 @@ export function PlantRespTopic({onBack}: any) {
       <h3>Ключевые термины</h3><b>Дыхание</b> — расщепление органических веществ с освобождением энергии. <b>Аэробное дыхание</b> — с кислородом. <b>Анаэробное дыхание</b> — без кислорода. <b>Чечевички</b> — образования в коре для газообмена. <b>Выделение</b> — удаление продуктов обмена. <b>Листопад</b> — сбрасывание листьев.
       <h3>Типичные ошибки</h3>Считать, что растения дышат только ночью (они дышат всегда, просто днём это скрыто фотосинтезом); думать, что растения дышат углекислым газом; считать, что дышат только листья.
       <h3>Итог</h3>Растения дышат всеми живыми клетками круглые сутки, получая энергию, а от ненужных веществ избавляются через устьица, листопад и выделения. Следующий шаг — задание от учителя.</div>
+    <button className="s" onClick={onBack}>← К темам станции</button></div>;
+}
+
+export function PlantReproTopic({onBack}: any) {
+  return <div><button className="s" onClick={onBack}>← К темам станции</button><h1>Размножение и рост растений</h1><span className="tag">Станция «Лаборатория растений»</span>
+    <div className="card"><h3>Что я узнаю</h3>Чем бесполое размножение отличается от полового, как растения размножаются вегетативно, как происходят опыление и двойное оплодотворение, как развивается и растёт растение.</div>
+    <div className="card"><h3>Бесполое и половое размножение</h3>
+      <div className="sc"><table><thead><tr><th>Признак</th><th>Бесполое</th><th>Половое</th></tr></thead><tbody>
+        <tr><td>Сколько родителей</td><td>один</td><td>обычно два</td></tr><tr><td>Половые клетки</td><td>не участвуют</td><td>сливаются (оплодотворение)</td></tr>
+        <tr><td>Потомство</td><td>точные копии родителя</td><td>сочетает признаки обоих родителей</td></tr><tr><td>Преимущество</td><td>быстро, сохраняет сорт</td><td>разнообразие, лучшая приспособляемость</td></tr>
+        <tr><td>Примеры у растений</td><td>вегетативное размножение, споры</td><td>размножение семенами</td></tr></tbody></table></div></div>
+    <Suspense fallback={<div className="card">Загружаю…</div>}><Vegetative/><Flower3D/></Suspense>
+    <div className="card"><h3>Опыление</h3>Опыление — перенос пыльцы с тычинок на рыльце пестика. <b>Самоопыление</b> — пыльца попадает на рыльце того же цветка (горох, пшеница). <b>Перекрёстное опыление</b> — пыльца переносится с одного растения на другое насекомыми, ветром, водой, птицами. Потомство от перекрёстного опыления более жизнеспособно. Человек проводит <b>искусственное опыление</b>, чтобы вывести новые сорта и повысить урожай.
+      <h3>Двойное оплодотворение</h3>Оплодотворение — слияние мужской и женской половых клеток. У цветковых растений оно двойное: один спермий сливается с яйцеклеткой (получается зигота → зародыш), второй — с центральной клеткой (получается эндосперм, запас пищи). Открыл его в 1898 году С. Г. Навашин.</div>
+    <Suspense fallback={null}><PollSort/></Suspense>
+    <div className="card"><h3>Индивидуальное развитие растения</h3>Онтогенез — развитие организма от зиготы до естественной смерти. У цветкового растения: <b>зародыш</b> в семени → <b>проросток</b> (семя прорастает при наличии воды, тепла и воздуха) → <b>молодое растение</b> (растёт, но не цветёт) → <b>взрослое растение</b> (цветёт и плодоносит) → <b>старение</b> и отмирание. По длительности жизни растения бывают однолетние, двулетние и многолетние.
+      <h3>Рост растений</h3>Растения растут всю жизнь благодаря <b>образовательной ткани</b>, клетки которой постоянно делятся. В длину стебель и корень растут верхушками (верхушечный рост), у злаков — ещё и основаниями междоузлий (вставочный рост). В толщину ствол растёт за счёт камбия — слоя образовательной ткани между корой и древесиной.</div>
+    <Suspense fallback={null}><TreeRings/></Suspense>
+    <div className="card"><h3>Ключевые термины</h3><b>Вегетативное размножение</b> — размножение частями тела. <b>Опыление</b> — перенос пыльцы на рыльце. <b>Оплодотворение</b> — слияние половых клеток. <b>Спермий</b> — мужская половая клетка растений. <b>Эндосперм</b> — запас питательных веществ в семени. <b>Камбий</b> — образовательная ткань, дающая рост в толщину. <b>Онтогенез</b> — индивидуальное развитие.
+      <h3>Типичные ошибки</h3>Путать опыление и оплодотворение (сначала опыление, потом оплодотворение); считать, что плод развивается из семязачатка (из него — семя, а плод — из завязи); думать, что оба спермия сливаются с яйцеклеткой.
+      <h3>Итог</h3>Растения размножаются бесполым и половым способами, а растут всю жизнь благодаря образовательной ткани. Следующий шаг — задание от учителя.</div>
     <button className="s" onClick={onBack}>← К темам станции</button></div>;
 }

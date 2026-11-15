@@ -2,7 +2,7 @@ import topicsMap from '../content/topics.json';
 import {itemsOf, meta} from './bankdata';
 
 // первая буква id задания темы -> раздел анализа
-const PREFIX: Record<string, string> = {x: 'transport', c: 'cell', ch: 'cell', dn: 'cell', mi: 'cell', a: 'animals', h: 'human', n: 'human', rf: 'human', sl: 'human', e: 'eco', f: 'eco', s: 'eco', k: 'eco', p: 'photo', rs: 'plants'};
+const PREFIX: Record<string, string> = {x: 'transport', c: 'cell', ch: 'cell', dn: 'cell', mi: 'cell', a: 'animals', h: 'human', n: 'human', rf: 'human', sl: 'human', e: 'eco', f: 'eco', s: 'eco', k: 'eco', p: 'photo', rs: 'plants', rp: 'plants'};
 export const TOPICS: Record<string, {name: string; tip: string}> = {
   eco: {name: 'Экология и пищевые цепи', tip: 'Повтори пищевые цепи и трофические уровни (правило 10 %), роли продуцентов, консументов и редуцентов, сукцессию, влияние загрязнения и вселенцев. Перед ответом рисуй цепь питания и спрашивай себя: что изменится у звена до и после?'},
   animals: {name: 'Животные и их приспособления', tip: 'Повтори признаки основных групп (членистоногие, моллюски, рыбы, земноводные, пресмыкающиеся, птицы, млекопитающие). Составь таблицу: группа — покровы, дыхание, сердце, размножение — и найди приспособления к среде.'},
