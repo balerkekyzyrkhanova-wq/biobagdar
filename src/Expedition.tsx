@@ -1,7 +1,7 @@
 import {lazy, Suspense, useState} from 'react';
 const Cell3D = lazy(() => import('./Cell3D'));
 const Heart3D = lazy(() => import('./Heart3D'));
-const Human3D = lazy(() => import('./Human3D'));
+const Body3D = lazy(() => import('./Body3D'));
 const Eco3D = lazy(() => import('./Eco3D'));
 const Leaf3D = lazy(() => import('./Leaf3D'));
 const NerveTypes = lazy(() => import('./NerveArt').then(m => ({default: m.NerveTypes})));
@@ -108,6 +108,7 @@ export const STATIONS: {desc: string; topics: TopicDef[]}[] = [
     {id: 'animresp', title: 'Дыхание и выделение у животных', par: '§26, 31', ready: true},
     {id: 'animmove', title: 'Движение и развитие животных', par: '§34, 56–57', ready: true}]},
   {desc: 'Дыхание, нервная система, рефлексы, сон и память.', topics: [
+    {id: 'atlas', title: '3D-атлас: органы человека', par: '', ready: true},
     {id: 'human', title: 'Дыхание человека', par: '§27–28', ready: true},
     {id: 'nerve', title: 'Нервная система и головной мозг', par: '§35–39, 43', ready: true},
     {id: 'reflex', title: 'Рефлексы и поведение', par: '§40–42', ready: true},
@@ -138,7 +139,7 @@ export function StationPage({i, onBack, onOpen}: any) {
 
 export function TopicView({id, onBack}: any) {
   return id === 'cell' ? <CellTopic onBack={onBack}/> : id === 'xylem' ? <Topic onBack={onBack}/> : id === 'animals' ? <AnimalTopic part="classes" onBack={onBack}/> : id === 'heart' ? <AnimalTopic part="heart" onBack={onBack}/>
-    : id === 'human' ? <HumanTopic part="breath" onBack={onBack}/> : id === 'food' ? <HumanTopic part="food" onBack={onBack}/> : id === 'eco' ? <EcoTopic onBack={onBack}/> : id === 'photo' ? <PhotoTopic onBack={onBack}/> : id === 'ecofact' ? <FactorTopic onBack={onBack}/> : id === 'success' ? <SuccTopic onBack={onBack}/> : id === 'redbook' ? <RedTopic onBack={onBack}/> : id === 'nerve' ? <NerveTopic onBack={onBack}/> : id === 'reflex' ? <ReflexTopic onBack={onBack}/> : id === 'sleep' ? <SleepTopic onBack={onBack}/> : id === 'chem' ? <ChemTopic onBack={onBack}/> : id === 'dna' ? <DnaTopic onBack={onBack}/> : id === 'micro' ? <MicroTopic onBack={onBack}/> : id === 'plantresp' ? <PlantRespTopic onBack={onBack}/> : id === 'plantrepro' ? <PlantReproTopic onBack={onBack}/> : id === 'animresp' ? <AnimRespTopic onBack={onBack}/> : id === 'animmove' ? <AnimMoveTopic onBack={onBack}/> : null;
+    : id === 'atlas' ? <AtlasTopic onBack={onBack}/> : id === 'human' ? <HumanTopic part="breath" onBack={onBack}/> : id === 'food' ? <HumanTopic part="food" onBack={onBack}/> : id === 'eco' ? <EcoTopic onBack={onBack}/> : id === 'photo' ? <PhotoTopic onBack={onBack}/> : id === 'ecofact' ? <FactorTopic onBack={onBack}/> : id === 'success' ? <SuccTopic onBack={onBack}/> : id === 'redbook' ? <RedTopic onBack={onBack}/> : id === 'nerve' ? <NerveTopic onBack={onBack}/> : id === 'reflex' ? <ReflexTopic onBack={onBack}/> : id === 'sleep' ? <SleepTopic onBack={onBack}/> : id === 'chem' ? <ChemTopic onBack={onBack}/> : id === 'dna' ? <DnaTopic onBack={onBack}/> : id === 'micro' ? <MicroTopic onBack={onBack}/> : id === 'plantresp' ? <PlantRespTopic onBack={onBack}/> : id === 'plantrepro' ? <PlantReproTopic onBack={onBack}/> : id === 'animresp' ? <AnimRespTopic onBack={onBack}/> : id === 'animmove' ? <AnimMoveTopic onBack={onBack}/> : null;
 }
 
 const PI: any = {
@@ -246,6 +247,7 @@ export const OWL: any = {
   plantrepro: 'Сначала изучи части цветка, потом открой «Опыление и оплодотворение» и пройди шесть шагов по порядку.',
   animresp: 'Листай органы дыхания по порядку и следи за точками кислорода. Потом так же пройди органы выделения.',
   animmove: 'Посмотри, как движутся одноклеточные, а потом сравни жизненные циклы бабочки, кузнечика, лягушки и курицы.',
+  atlas: 'Нажимай на органы: выбранный увеличится и подсветится. Включи скелет и повращай модель.',
   diary: 'Ошибка — это подсказка, что повторить. Выбери причину честно, так легче не повторять её.',
 };
 
@@ -416,7 +418,7 @@ export function AnimalTopic({onBack, part}: any) {
 export function HumanTopic({onBack, part}: any) {
   if (part === 'food') return <div><button className="s" onClick={onBack}>← К темам станции</button><h1>Пищеварение</h1><span className="tag">Станция «Организм человека»</span>
     <div className="card"><h3>Что я узнаю</h3>По каким органам и в каком порядке проходит пища и что происходит в каждом отделе.</div>
-    <Suspense fallback={<div className="card">Загружаю 3D-модель…</div>}><Human3D only="food"/></Suspense>
+    <Suspense fallback={<div className="card">Загружаю 3D-модель…</div>}><Body3D set="food"/></Suspense>
     <div className="card"><h3>Пищеварительная система</h3>Путь пищи: ротовая полость → глотка → пищевод → желудок → тонкая кишка → толстая кишка. В ротовой полости пища измельчается, слюна начинает расщеплять крахмал. В желудке сок с соляной кислотой и пепсином расщепляет белки. В тонкой кишке пищу доводят до конца желчь (печень) и сок поджелудочной железы, а питательные вещества всасываются в кровь. В толстой кишке всасывается вода.
       <h3>Ключевые термины</h3><b>Перистальтика</b> — волны сокращений стенок, продвигающие пищу. <b>Ферменты</b> — вещества, ускоряющие расщепление пищи. <b>Желчь</b> — жидкость печени, помогающая перевариванию жиров.
       <h3>Типичные ошибки</h3>Считать, что желчь расщепляет белки (она помогает с жирами); считать, что большая часть питательных веществ всасывается в толстой кишке (в тонкой).
@@ -424,7 +426,7 @@ export function HumanTopic({onBack, part}: any) {
     <button className="s" onClick={onBack}>← К темам станции</button></div>;
   return <div><button className="s" onClick={onBack}>← К темам станции</button><h1>Дыхание человека</h1><span className="tag">Станция «Организм человека»</span>
     <div className="card"><h3>Что я узнаю</h3>Как воздух попадает в лёгкие, как работает диафрагма, где происходит газообмен и как беречь органы дыхания.</div>
-    <Suspense fallback={<div className="card">Загружаю 3D-модель…</div>}><Human3D only="breath"/></Suspense>
+    <Suspense fallback={<div className="card">Загружаю 3D-модель…</div>}><Body3D set="breath"/></Suspense>
     <div className="card"><h3>Дыхательная система</h3>Путь воздуха: носовая полость → глотка → гортань → трахея → бронхи → альвеолы. В носу воздух согревается и очищается. Лёгкие состоят из миллионов альвеол — тонкостенных пузырьков, оплетённых капиллярами. Здесь кислород переходит из воздуха в кровь, а углекислый газ — из крови в воздух.
       <h3>Вдох и выдох</h3>При вдохе диафрагма и межрёберные мышцы сокращаются, грудная клетка расширяется, давление в лёгких падает, и воздух входит. При выдохе мышцы расслабляются, объём уменьшается, и воздух выходит.</div>
     <div className="card"><h3>Заболевания и профилактика</h3>Через воздух передаются грипп, ОРВИ, туберкулёз. Защищают проветривание, влажная уборка, закаливание, прививки, маска при болезни. Курение разрушает альвеолы и реснички дыхательных путей, поэтому лёгкие хуже очищаются и чаще болеют.
@@ -704,5 +706,12 @@ export function AnimMoveTopic({onBack}: any) {
       <h3>Ключевые термины</h3><b>Онтогенез</b> — индивидуальное развитие. <b>Личинка</b> — стадия, не похожая на взрослое животное. <b>Метаморфоз</b> — превращение личинки во взрослое животное. <b>Куколка</b> — неподвижная стадия у насекомых с полным превращением. <b>Линька</b> — сбрасывание старого покрова при росте.
       <h3>Типичные ошибки</h3>Считать, что у кузнечика есть куколка (у него неполное превращение, три стадии); думать, что гусеница и бабочка — разные животные; считать развитие лягушки прямым; путать онтогенез (развитие одной особи) с эволюцией (развитием вида).
       <h3>Итог</h3>Способ движения зависит от среды обитания и строения тела, а развитие бывает прямым и с превращением. Следующий шаг — задание от учителя.</div>
+    <button className="s" onClick={onBack}>← К темам станции</button></div>;
+}
+
+export function AtlasTopic({onBack}: any) {
+  return <div><button className="s" onClick={onBack}>← К темам станции</button><h1>3D-атлас: органы человека</h1><span className="tag">Станция «Организм человека»</span>
+    <Suspense fallback={<div className="card">Загружаю 3D-модель…</div>}><Body3D set="all"/></Suspense>
+    <div className="card"><h3>Системы органов</h3><b>Нервная</b> — головной и спинной мозг, нервы: управляет организмом. <b>Дыхательная</b> — трахея, бронхи, лёгкие: газообмен. <b>Кровеносная</b> — сердце и сосуды: переносит вещества. <b>Пищеварительная</b> — пищевод, желудок, кишечник, печень, поджелудочная железа: переваривает пищу. <b>Выделительная</b> — почки, мочевой пузырь: удаляет продукты обмена. <b>Опорно-двигательная</b> — скелет и мышцы: опора и движение.</div>
     <button className="s" onClick={onBack}>← К темам станции</button></div>;
 }
