@@ -12,7 +12,7 @@ import {topicStats} from './analytics';
 import {Ctx, Trainer, BankAttemptsList, vTitle, fmtDate} from './Olympiad';
 import {TOPIC_NAMES, ALL_ITEMS, EXCLUDED, VARIANTS, STAGE_NAME, itemsOf, maxOf, meta} from './bankdata';
 import {Results, badgesOf} from './Results';
-import {Owl, Hero, Profile, StationMap, Topic, CellTopic, AnimalTopic, HumanTopic, EcoTopic, OWL, useProfile} from './Expedition';
+import {Owl, Hero, Profile, StationMap, StationPage, TopicView, stationOf, OWL, useProfile} from './Expedition';
 
 const card: any = {border: '1px solid var(--bd)', borderRadius: 14, padding: 14, margin: '10px 0', background: 'var(--card)'};
 const msgOf = (e: any) => (e?.code === 'permission-denied' ? 'Нет доступа, либо срок или число попыток исчерпаны' : e?.message || 'Ошибка');
@@ -61,7 +61,8 @@ export function Nav({view, set}: any) {
 function Student({uid, prof, reload}: any) {
   const [code, setCode] = useState(''), [as, setAs] = useState<any[]>([]), [at, setAt] = useState<any[]>([]), [w, setW] = useState<any>(null), [err, setErr] = useState(''), [view, setView] = useState('home'), [ba, setBa] = useState<any[]>([]), [bk, setBk] = useState<any>({}), [note, setNote] = useState<any>(null), [pf, setPf] = useProfile();
   const mkSet = (v: string) => (b: boolean) => { setView(b ? v : 'home'); window.scrollTo(0, 0); };
-  const showD = view === 'diary', setShowD = mkSet('diary'), showT = view === 'trainer', setShowT = mkSet('trainer'), showR = view === 'results', setShowR = mkSet('results'), showTopic = view === 'xylem', setShowTopic = mkSet('xylem'), showCell = view === 'cell', setShowCell = mkSet('cell'), showAn = view === 'animals', setShowAn = mkSet('animals'), showHu = view === 'human', setShowHu = mkSet('human'), showEc = view === 'eco', setShowEc = mkSet('eco');
+  const showD = view === 'diary', setShowD = mkSet('diary'), showT = view === 'trainer', setShowT = mkSet('trainer'), showR = view === 'results', setShowR = mkSet('results');
+  const go = (v: string) => { setView(v); window.scrollTo(0, 0); };
   const shell = (x: any) => <><Nav view={showT ? 'trainer' : showR ? 'results' : showD ? 'diary' : 'home'} set={(k: string) => { setView(k); window.scrollTo(0, 0); }}/>{x}</>;
   const refresh = async () => {
     try { setBa(mk((await getDocs(query(collection(db, 'bankAttempts'), where('studentId', '==', uid)))).docs).sort((x: any, y: any) => (y.createdAt?.seconds || 0) - (x.createdAt?.seconds || 0))); } catch { setBa([]); }
@@ -85,11 +86,8 @@ function Student({uid, prof, reload}: any) {
   };
   if (!prof.groupId) return <div style={card}><h2>Присоединиться к группе</h2><input placeholder="Код группы" value={code} onChange={e => setCode(e.target.value)}/><button onClick={join}>Войти в группу</button><div>{err}</div></div>;
   if (w) return <Work a={w} uid={uid} prof={prof} onDone={() => { setW(null); refresh(); }}/>;
-  if (showEc) return shell(<><Owl text={OWL.eco}/><EcoTopic onBack={() => setShowEc(false)}/></>);
-  if (showHu) return shell(<><Owl text={OWL.human}/><HumanTopic onBack={() => setShowHu(false)}/></>);
-  if (showAn) return shell(<><Owl text={OWL.animals}/><AnimalTopic onBack={() => setShowAn(false)}/></>);
-  if (showCell) return shell(<><Owl text={OWL.cell}/><CellTopic onBack={() => setShowCell(false)}/></>);
-  if (showTopic) return shell(<><Owl text={OWL.topic}/><Topic onBack={() => setShowTopic(false)}/></>);
+  if (view.startsWith('st:')) return shell(<StationPage i={+view.slice(3)} onBack={() => go('home')} onOpen={(id: string) => go('tp:' + id)}/>);
+  if (view.startsWith('tp:')) { const id = view.slice(3); return shell(<><Owl text={OWL[id === 'xylem' ? 'topic' : id] || OWL.topic}/><TopicView id={id} onBack={() => go('st:' + stationOf(id))}/></>); }
   if (showR) return shell(<Results as={as} at={at} ba={ba} analysis={<MyAnalysis stats={topicStats(ba, id => bk[id], at)} note={note}/>} onBack={() => setShowR(false)}/>);
   if (showT) return shell(<Trainer uid={uid} prof={prof} onBack={() => { setShowT(false); refresh(); }}/>);
   if (showD) return shell(<Diary uid={uid} as={as} at={at} onBack={() => setShowD(false)}/>);
@@ -103,7 +101,7 @@ function Student({uid, prof, reload}: any) {
       <div><button disabled={mine.length >= a.tries} onClick={() => setW(a)}>{mine.length ? 'Новая попытка' : 'Начать'}</button></div>
       {mine.map(t => <div key={t.id}>Попытка {t.n}: {t.status}{t.score != null ? ` · ${t.score}/${t.max}` : ' · результат появится после проверки учителем'}{t.comments.map((c: string, i: number) => <div key={i}>💬 {c}</div>)}</div>)}</div>; })}
     {!as.length && <div style={card}>Заданий от учителя пока нет. Ты можешь изучать готовую тему на карте.</div>}
-    <StationMap onEco={() => setShowEc(true)} onHuman={() => setShowHu(true)} onAnimals={() => setShowAn(true)} onCell={() => setShowCell(true)} onTopic={() => setShowTopic(true)} onTrainer={() => setShowT(true)} onDiary={() => setShowD(true)}/>
+    <StationMap onStation={(i: number) => go('st:' + i)} onTrainer={() => setShowT(true)}/>
     <Profile prof={pf} setProf={setPf}/>
     {nErr > 0 && <div className="warn">Вопросов для разбора в дневнике ошибок: {nErr}</div>}</div>);
 }

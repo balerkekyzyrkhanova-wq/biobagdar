@@ -133,9 +133,9 @@ function build(key: string, bodyOn: boolean) {
   return {root, update};
 }
 
-export default function Human3D() {
+export default function Human3D({only}: {only?: string}) {
   const host = useRef<HTMLDivElement>(null);
-  const [k, setK] = useState('breath'), [playing, setPlaying] = useState(false), [step, setStep] = useState(0), [mode, setMode] = useState<'flow' | 'step'>('flow'), [body, setBody] = useState(true), [err, setErr] = useState('');
+  const [k, setK] = useState(only || 'breath'), [playing, setPlaying] = useState(false), [step, setStep] = useState(0), [mode, setMode] = useState<'flow' | 'step'>('flow'), [body, setBody] = useState(true), [err, setErr] = useState('');
   const st = useRef<any>({}); st.current = {playing, step, mode};
   const M = MODES[k];
   useEffect(() => {
@@ -164,7 +164,7 @@ export default function Human3D() {
   const cur = M.steps[Math.min(step, M.steps.length - 1)];
   const go = (n: number) => { setMode('step'); setPlaying(true); setStep((n + M.steps.length) % M.steps.length); };
   return <div className="card lab l3"><div className="tb"><b style={{flexBasis: '100%'}}>3D-модель: тело человека</b>
-    {[['breath', '🫁 Дыхание'], ['food', '🍽️ Пищеварение']].map(([id, t]) => <button key={id} className={k === id ? '' : 's'} style={{minHeight: 38, padding: '4px 10px'}} onClick={() => { setK(id); setStep(0); setMode('flow'); }}>{t}</button>)}</div>
+    {!only && [['breath', '🫁 Дыхание'], ['food', '🍽️ Пищеварение']].map(([id, t]) => <button key={id} className={k === id ? '' : 's'} style={{minHeight: 38, padding: '4px 10px'}} onClick={() => { setK(id); setStep(0); setMode('flow'); }}>{t}</button>)}</div>
     {err ? <div className="warn" style={{margin: 14}}>{err}</div> : <div ref={host} className="lcv" style={{height: 'min(70vh, 520px)', margin: '0 10px', background: 'radial-gradient(ellipse at 50% 35%, #2a1f3a 0%, #0b1220 78%)', borderRadius: 14}}/>}
     <div className="lpn" style={{padding: '8px 14px 14px'}}>
       <div style={{display: 'flex', flexWrap: 'wrap', gap: 4}}>
