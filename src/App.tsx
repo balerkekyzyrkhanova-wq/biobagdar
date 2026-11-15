@@ -17,6 +17,7 @@ import sleep from '../content/sleep.json';
 import chem from '../content/chem.json';
 import dna from '../content/dna.json';
 import micro from '../content/micro.json';
+import plantresp from '../content/plantresp.json';
 import {TeacherAnalytics, MyAnalysis} from './Analytics';
 import {topicStats} from './analytics';
 import {Ctx, Trainer, BankAttemptsList, vTitle, fmtDate} from './Olympiad';
@@ -260,7 +261,7 @@ function Teacher({uid}: any) {
   };
   useEffect(() => { refresh(); }, []);
   const act = async (fn: () => Promise<any>, ok: string) => { setMsg(''); try { await fn(); setMsg(ok); refresh(); } catch (e) { setMsg(msgOf(e)); } };
-  const SETS: any = {xylem, cell, animals, human, eco: ecokz, photo, ecofact, success, redbook, nerve, reflex, sleep, chem, dna, micro};
+  const SETS: any = {xylem, cell, animals, human, eco: ecokz, photo, ecofact, success, redbook, nerve, reflex, sleep, chem, dna, micro, plantresp};
   const seed = async (tp: string) => {
     const have = await getDocs(query(collection(db, 'keys'), where('topicId', '==', tp))); const ex = new Set(have.docs.map(d => d.id));
     const b = writeBatch(db);

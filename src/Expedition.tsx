@@ -23,6 +23,10 @@ const Micro3D = lazy(() => import('./Micro3D'));
 const Shapes = lazy(() => import('./Micro3D').then(m => ({default: m.Shapes})));
 const Growth = lazy(() => import('./Micro3D').then(m => ({default: m.Growth})));
 const VirusCycle = lazy(() => import('./Micro3D').then(m => ({default: m.VirusCycle})));
+const GasDay = lazy(() => import('./RespArt').then(m => ({default: m.GasDay})));
+const CandleLab = lazy(() => import('./RespArt').then(m => ({default: m.CandleLab})));
+const ProcSort = lazy(() => import('./RespArt').then(m => ({default: m.ProcSort})));
+const Excrete = lazy(() => import('./RespArt').then(m => ({default: m.Excrete})));
 const Brain3D = lazy(() => import('./Brain3D'));
 const Map3D = lazy(() => import('./Map3D'));
 const Succ3D = lazy(() => import('./Succ3D'));
@@ -82,7 +86,7 @@ export const STATIONS: {desc: string; topics: TopicDef[]}[] = [
   {desc: 'Транспорт, фотосинтез, дыхание, размножение растений.', topics: [
     {id: 'xylem', title: 'Транспорт веществ: ксилема и флоэма', par: '§16–20', ready: true},
     {id: 'photo', title: 'Лист и фотосинтез', par: '§22–23, 33', ready: true},
-    {id: 'plantresp', title: 'Дыхание и выделение у растений', par: '§25, 30'},
+    {id: 'plantresp', title: 'Дыхание и выделение у растений', par: '§25, 30', ready: true},
     {id: 'plantrepro', title: 'Размножение и рост растений', par: '§52–55, 58–59'}]},
   {desc: 'Классы, сердце, дыхание, движение и развитие.', topics: [
     {id: 'animals', title: 'Классификация и классы животных', par: '§8–10', ready: true},
@@ -120,7 +124,7 @@ export function StationPage({i, onBack, onOpen}: any) {
 
 export function TopicView({id, onBack}: any) {
   return id === 'cell' ? <CellTopic onBack={onBack}/> : id === 'xylem' ? <Topic onBack={onBack}/> : id === 'animals' ? <AnimalTopic part="classes" onBack={onBack}/> : id === 'heart' ? <AnimalTopic part="heart" onBack={onBack}/>
-    : id === 'human' ? <HumanTopic part="breath" onBack={onBack}/> : id === 'food' ? <HumanTopic part="food" onBack={onBack}/> : id === 'eco' ? <EcoTopic onBack={onBack}/> : id === 'photo' ? <PhotoTopic onBack={onBack}/> : id === 'ecofact' ? <FactorTopic onBack={onBack}/> : id === 'success' ? <SuccTopic onBack={onBack}/> : id === 'redbook' ? <RedTopic onBack={onBack}/> : id === 'nerve' ? <NerveTopic onBack={onBack}/> : id === 'reflex' ? <ReflexTopic onBack={onBack}/> : id === 'sleep' ? <SleepTopic onBack={onBack}/> : id === 'chem' ? <ChemTopic onBack={onBack}/> : id === 'dna' ? <DnaTopic onBack={onBack}/> : id === 'micro' ? <MicroTopic onBack={onBack}/> : null;
+    : id === 'human' ? <HumanTopic part="breath" onBack={onBack}/> : id === 'food' ? <HumanTopic part="food" onBack={onBack}/> : id === 'eco' ? <EcoTopic onBack={onBack}/> : id === 'photo' ? <PhotoTopic onBack={onBack}/> : id === 'ecofact' ? <FactorTopic onBack={onBack}/> : id === 'success' ? <SuccTopic onBack={onBack}/> : id === 'redbook' ? <RedTopic onBack={onBack}/> : id === 'nerve' ? <NerveTopic onBack={onBack}/> : id === 'reflex' ? <ReflexTopic onBack={onBack}/> : id === 'sleep' ? <SleepTopic onBack={onBack}/> : id === 'chem' ? <ChemTopic onBack={onBack}/> : id === 'dna' ? <DnaTopic onBack={onBack}/> : id === 'micro' ? <MicroTopic onBack={onBack}/> : id === 'plantresp' ? <PlantRespTopic onBack={onBack}/> : null;
 }
 
 const PI: any = {
@@ -224,6 +228,7 @@ export const OWL: any = {
   chem: 'Проведи опыты в виртуальной лаборатории: найди крахмал, жир, белок, воду и соли. Потом посмотри, что будет с растением без азота, фосфора или калия.',
   dna: 'Раскрути спираль в лесенку и нажимай на ступеньки. Найди правило, по которому соединяются основания, и дострой вторую цепь сам.',
   micro: 'Рассмотри бактерию, вирус и бактериофаг в 3D. Потом проверь, как быстро бактерии размножаются в тепле и в холодильнике.',
+  plantresp: 'Переключай день и ночь и следи за стрелками газов. Потом проведи опыт со свечой и реши, какие семена дышат.',
   diary: 'Ошибка — это подсказка, что повторить. Выбери причину честно, так легче не повторять её.',
 };
 
@@ -592,5 +597,26 @@ export function MicroTopic({onBack}: any) {
     <div className="card"><h3>Ключевые термины</h3><b>Прокариоты</b> — организмы без оформленного ядра. <b>Спора бактерии</b> — покоящаяся клетка в плотной оболочке для переживания неблагоприятных условий. <b>Патогенные (болезнетворные)</b> — вызывающие болезни. <b>Капсид</b> — белковая оболочка вируса. <b>Бактериофаг</b> — вирус бактерий. <b>Биотехнология</b> — использование живых организмов для получения продуктов и лекарств.
       <h3>Типичные ошибки</h3>Считать вирус клеткой или самой мелкой бактерией; думать, что антибиотики лечат грипп; считать все бактерии вредными; путать споры бактерий (для выживания) со спорами грибов (для размножения).
       <h3>Итог</h3>Бактерии — клетки без ядра, большинство их полезно. Вирусы — не клетки и размножаются только внутри чужих клеток. Следующий шаг — задание от учителя.</div>
+    <button className="s" onClick={onBack}>← К темам станции</button></div>;
+}
+
+export function PlantRespTopic({onBack}: any) {
+  return <div><button className="s" onClick={onBack}>← К темам станции</button><h1>Дыхание и выделение у растений</h1><span className="tag">Станция «Лаборатория растений»</span>
+    <div className="card"><h3>Что я узнаю</h3>Зачем организмам дыхание, какие бывают его типы, как дышат растения и как это доказать, чем дыхание отличается от фотосинтеза и как растения избавляются от ненужных веществ.</div>
+    <div className="card"><h3>Зачем нужно дыхание</h3>Всем живым организмам нужна энергия: для роста, движения, деления клеток. Она запасена в органических веществах. <b>Дыхание</b> — это расщепление органических веществ, при котором энергия освобождается.
+      <div className="card" style={{margin: '8px 0', textAlign: 'center', fontWeight: 700}}>глюкоза + кислород <span style={{color: 'var(--au)'}}>→</span> углекислый газ + вода + энергия</div>
+      <h3>Типы дыхания</h3><b>Аэробное</b> — с участием кислорода. Так дышит большинство организмов: растения, животные, грибы, многие бактерии. Освобождается много энергии. <b>Анаэробное</b> — без кислорода. Так получают энергию дрожжи (спиртовое брожение — на нём основано хлебопечение) и молочнокислые бактерии (кефир, айран). Энергии освобождается намного меньше.</div>
+    <Suspense fallback={<div className="card">Загружаю…</div>}><GasDay/><CandleLab/></Suspense>
+    <div className="card"><h3>Дыхание и фотосинтез — противоположные процессы</h3>
+      <div className="sc"><table><thead><tr><th>Признак</th><th>Фотосинтез</th><th>Дыхание</th></tr></thead><tbody>
+        <tr><td>Когда идёт</td><td>только на свету</td><td>круглые сутки</td></tr><tr><td>Где идёт</td><td>в клетках с хлоропластами</td><td>во всех живых клетках</td></tr>
+        <tr><td>Поглощается</td><td>углекислый газ</td><td>кислород</td></tr><tr><td>Выделяется</td><td>кислород</td><td>углекислый газ</td></tr>
+        <tr><td>Органические вещества</td><td>образуются</td><td>расщепляются</td></tr><tr><td>Энергия</td><td>накапливается</td><td>освобождается</td></tr></tbody></table></div>
+      <p>Чтобы урожай хранился дольше, дыхание замедляют: овощи и фрукты держат в прохладе, зерно хорошо просушивают. Чем слабее дыхание, тем меньше тратится запасных веществ.</p></div>
+    <Suspense fallback={null}><ProcSort/><Excrete/></Suspense>
+    <div className="card"><h3>Значение выделения</h3>В ходе обмена веществ в клетках образуются ненужные и вредные продукты. Если их не удалять, организм отравляется. <b>Выделение</b> — удаление из организма конечных продуктов обмена веществ. У животных для этого есть специальные органы, у растений — нет: они накапливают ненужные вещества в вакуолях клеток, в листьях и коре, а затем сбрасывают.
+      <h3>Ключевые термины</h3><b>Дыхание</b> — расщепление органических веществ с освобождением энергии. <b>Аэробное дыхание</b> — с кислородом. <b>Анаэробное дыхание</b> — без кислорода. <b>Чечевички</b> — образования в коре для газообмена. <b>Выделение</b> — удаление продуктов обмена. <b>Листопад</b> — сбрасывание листьев.
+      <h3>Типичные ошибки</h3>Считать, что растения дышат только ночью (они дышат всегда, просто днём это скрыто фотосинтезом); думать, что растения дышат углекислым газом; считать, что дышат только листья.
+      <h3>Итог</h3>Растения дышат всеми живыми клетками круглые сутки, получая энергию, а от ненужных веществ избавляются через устьица, листопад и выделения. Следующий шаг — задание от учителя.</div>
     <button className="s" onClick={onBack}>← К темам станции</button></div>;
 }
