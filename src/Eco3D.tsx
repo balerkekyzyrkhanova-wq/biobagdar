@@ -118,10 +118,10 @@ export default function Eco3D() {
   }, [playing, mode, k]);
   const cur = all[Math.min(step, all.length - 1)], go = (i: number) => { setMode('step'); setPlaying(false); setStep((i + all.length) % all.length); };
   const rm = removed >= 0 ? all[removed] : null;
-  return <div className="card lab"><div className="tb"><b style={{flexBasis: '100%'}}>3D-диорама: цепь питания</b>
+  return <div className="card lab l3"><div className="tb"><b style={{flexBasis: '100%'}}>3D-диорама: цепь питания</b>
     {Object.entries(ECOS).map(([id, e]) => <button key={id} className={k === id ? '' : 's'} style={{minHeight: 38, padding: '4px 10px'}} onClick={() => { setK(id); setStep(0); setRemoved(-1); }}>{e.name}</button>)}</div>
-    {err ? <div className="warn" style={{margin: 14}}>{err}</div> : <div ref={host} style={{height: 'min(62vh, 460px)', margin: '0 10px', borderRadius: 14}}/>}
-    <div style={{padding: '8px 14px 14px'}}>
+    {err ? <div className="warn" style={{margin: 14}}>{err}</div> : <div ref={host} className="lcv" style={{height: 'min(62vh, 460px)', margin: '0 10px', borderRadius: 14}}/>}
+    <div className="lpn" style={{padding: '8px 14px 14px'}}>
       <div className="mu" style={{marginBottom: 8}}>{E.intro}</div>
       <div style={{display: 'flex', flexWrap: 'wrap', gap: 4}}>
         <button onClick={() => { if (!playing || mode !== 'flow') { setMode('flow'); setPlaying(true); } else setPlaying(false); }}>{playing && mode === 'flow' ? '⏸ Пауза' : '▶ Запустить поток энергии'}</button>

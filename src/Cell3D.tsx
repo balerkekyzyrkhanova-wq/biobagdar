@@ -189,13 +189,13 @@ export default function Cell3D() {
 
   const keys = KEYS[kind];
   const cur = sel && keys.includes(sel) ? INFO[sel] : null;
-  return <div className="card lab"><div className="tb"><b style={{flexBasis: '100%'}}>3D-модель клетки</b>
+  return <div className="card lab l3"><div className="tb"><b style={{flexBasis: '100%'}}>3D-модель клетки</b>
     <button className={kind === 'animal' ? '' : 's'} onClick={() => { setKind('animal'); setSel(''); }}>🐾 Животная клетка</button>
     <button className={kind === 'plant' ? '' : 's'} onClick={() => { setKind('plant'); setSel(''); }}>🌿 Растительная клетка</button>
     <button className={cut ? '' : 's'} onClick={() => setCut(!cut)} aria-pressed={cut}>✂ Разрез</button>
     <button className="s" onClick={() => setSpin(!spin)}>{spin ? '⏸ Остановить' : '▶ Вращение и движение'}</button></div>
-    {err ? <div className="warn" style={{margin: 14}}>{err}</div> : <div ref={host} style={{height: 'min(62vh, 440px)', margin: '0 10px', background: 'radial-gradient(ellipse at 50% 40%, #1d3b56 0%, #0b1622 75%)', borderRadius: 14}}/>}
-    <div style={{padding: '8px 14px 14px'}}>
+    {err ? <div className="warn" style={{margin: 14}}>{err}</div> : <div ref={host} className="lcv" style={{height: 'min(62vh, 440px)', margin: '0 10px', background: 'radial-gradient(ellipse at 50% 40%, #1d3b56 0%, #0b1622 75%)', borderRadius: 14}}/>}
+    <div className="lpn" style={{padding: '8px 14px 14px'}}>
       <div style={{display: 'flex', flexWrap: 'wrap', gap: 4, margin: '4px 0 8px'}}>{keys.map(k => <button key={k} className={sel === k ? '' : 's'} style={{minHeight: 36, padding: '4px 10px'}} onClick={() => setSel(sel === k ? '' : k)}>{INFO[k][0]}</button>)}</div>
       <div className="warn" aria-live="polite">{cur ? <><b style={{color: 'var(--tx)'}}>{cur[0]}.</b> {cur[2]}</> : 'Вращай клетку пальцем или мышью, приближай двумя пальцами или колёсиком. Нажми на органоид или на кнопку с названием, чтобы прочитать о нём. Кнопка «Разрез» открывает внутренность клетки.'}</div>
       <div className="mu" style={{marginTop: 6}}>Модель упрощена: число, размеры и расположение органоидов условные. Реальные органоиды видны только в электронный микроскоп.</div></div></div>;

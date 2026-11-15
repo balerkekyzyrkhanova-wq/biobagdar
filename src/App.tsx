@@ -14,7 +14,6 @@ import {TOPIC_NAMES, ALL_ITEMS, EXCLUDED, VARIANTS, STAGE_NAME, itemsOf, maxOf, 
 import {Results, badgesOf} from './Results';
 import {Owl, Hero, Profile, StationMap, Topic, CellTopic, AnimalTopic, HumanTopic, EcoTopic, OWL, useProfile} from './Expedition';
 
-const box: any = {maxWidth: 940, margin: '0 auto', padding: 14};
 const card: any = {border: '1px solid var(--bd)', borderRadius: 14, padding: 14, margin: '10px 0', background: 'var(--card)'};
 const msgOf = (e: any) => (e?.code === 'permission-denied' ? 'Нет доступа, либо срок или число попыток исчерпаны' : e?.message || 'Ошибка');
 const mk = (arr: any[]) => arr.map(d => ({id: d.id, ...d.data()}));
@@ -28,9 +27,9 @@ export default function App() {
     setR(true);
   };
   useEffect(() => (configured ? onAuthStateChanged(auth, load) : undefined), []);
-  if (!configured) return <div style={box}><Hero/><div style={card}>Деморежим: Firebase не настроен, данные не сохраняются.</div></div>;
-  if (!ready) return <div style={box}>Загрузка…</div>;
-  return <div style={box}><Hero onOut={u ? () => signOut(auth) : undefined}/>
+  if (!configured) return <div className="app"><Hero/><div style={card}>Деморежим: Firebase не настроен, данные не сохраняются.</div></div>;
+  if (!ready) return <div className="app">Загрузка…</div>;
+  return <div className="app"><Hero onOut={u ? () => signOut(auth) : undefined}/>
     {!u ? <Auth/> : <>
       {teacher ? <Teacher uid={u.uid}/> : prof ? <Student uid={u.uid} prof={prof} reload={() => load(u)}/> : <div style={card}>Профиль не найден.</div>}</>}</div>;
 }
@@ -54,8 +53,16 @@ function Auth() {
     <div style={{color: '#c2410c'}}>{err}</div><div>Роль учителя выдаёт владелец проекта, самостоятельно её выбрать нельзя.</div></div>;
 }
 
+export function Nav({view, set}: any) {
+  const it = [['home', '🗺️', 'Карта'], ['trainer', '🏆', 'Тренажёр'], ['results', '📊', 'Результаты'], ['diary', '📓', 'Дневник']];
+  return <nav className="nav" aria-label="Разделы">{it.map(([k, ic, t]) => <button key={k} className={view === k ? 'on' : ''} aria-current={view === k ? 'page' : undefined} onClick={() => set(k)}><b aria-hidden="true">{ic}</b>{t}</button>)}</nav>;
+}
+
 function Student({uid, prof, reload}: any) {
-  const [code, setCode] = useState(''), [as, setAs] = useState<any[]>([]), [at, setAt] = useState<any[]>([]), [w, setW] = useState<any>(null), [err, setErr] = useState(''), [showD, setShowD] = useState(false), [showT, setShowT] = useState(false), [showTopic, setShowTopic] = useState(false), [showR, setShowR] = useState(false), [showCell, setShowCell] = useState(false), [showAn, setShowAn] = useState(false), [showHu, setShowHu] = useState(false), [showEc, setShowEc] = useState(false), [ba, setBa] = useState<any[]>([]), [bk, setBk] = useState<any>({}), [note, setNote] = useState<any>(null), [pf, setPf] = useProfile();
+  const [code, setCode] = useState(''), [as, setAs] = useState<any[]>([]), [at, setAt] = useState<any[]>([]), [w, setW] = useState<any>(null), [err, setErr] = useState(''), [view, setView] = useState('home'), [ba, setBa] = useState<any[]>([]), [bk, setBk] = useState<any>({}), [note, setNote] = useState<any>(null), [pf, setPf] = useProfile();
+  const mkSet = (v: string) => (b: boolean) => { setView(b ? v : 'home'); window.scrollTo(0, 0); };
+  const showD = view === 'diary', setShowD = mkSet('diary'), showT = view === 'trainer', setShowT = mkSet('trainer'), showR = view === 'results', setShowR = mkSet('results'), showTopic = view === 'xylem', setShowTopic = mkSet('xylem'), showCell = view === 'cell', setShowCell = mkSet('cell'), showAn = view === 'animals', setShowAn = mkSet('animals'), showHu = view === 'human', setShowHu = mkSet('human'), showEc = view === 'eco', setShowEc = mkSet('eco');
+  const shell = (x: any) => <><Nav view={showT ? 'trainer' : showR ? 'results' : showD ? 'diary' : 'home'} set={(k: string) => { setView(k); window.scrollTo(0, 0); }}/>{x}</>;
   const refresh = async () => {
     try { setBa(mk((await getDocs(query(collection(db, 'bankAttempts'), where('studentId', '==', uid)))).docs).sort((x: any, y: any) => (y.createdAt?.seconds || 0) - (x.createdAt?.seconds || 0))); } catch { setBa([]); }
     try { const k: any = {}; (await getDocs(collection(db, 'bankKeys'))).docs.forEach(d => { k[d.id] = d.data().answer; }); setBk(k); } catch {}
@@ -78,16 +85,16 @@ function Student({uid, prof, reload}: any) {
   };
   if (!prof.groupId) return <div style={card}><h2>Присоединиться к группе</h2><input placeholder="Код группы" value={code} onChange={e => setCode(e.target.value)}/><button onClick={join}>Войти в группу</button><div>{err}</div></div>;
   if (w) return <Work a={w} uid={uid} prof={prof} onDone={() => { setW(null); refresh(); }}/>;
-  if (showEc) return <><Owl text={OWL.eco}/><EcoTopic onBack={() => setShowEc(false)}/></>;
-  if (showHu) return <><Owl text={OWL.human}/><HumanTopic onBack={() => setShowHu(false)}/></>;
-  if (showAn) return <><Owl text={OWL.animals}/><AnimalTopic onBack={() => setShowAn(false)}/></>;
-  if (showCell) return <><Owl text={OWL.cell}/><CellTopic onBack={() => setShowCell(false)}/></>;
-  if (showTopic) return <><Owl text={OWL.topic}/><Topic onBack={() => setShowTopic(false)}/></>;
-  if (showR) return <Results as={as} at={at} ba={ba} analysis={<MyAnalysis stats={topicStats(ba, id => bk[id], at)} note={note}/>} onBack={() => setShowR(false)}/>;
-  if (showT) return <Trainer uid={uid} prof={prof} onBack={() => { setShowT(false); refresh(); }}/>;
-  if (showD) return <Diary uid={uid} as={as} at={at} onBack={() => setShowD(false)}/>;
+  if (showEc) return shell(<><Owl text={OWL.eco}/><EcoTopic onBack={() => setShowEc(false)}/></>);
+  if (showHu) return shell(<><Owl text={OWL.human}/><HumanTopic onBack={() => setShowHu(false)}/></>);
+  if (showAn) return shell(<><Owl text={OWL.animals}/><AnimalTopic onBack={() => setShowAn(false)}/></>);
+  if (showCell) return shell(<><Owl text={OWL.cell}/><CellTopic onBack={() => setShowCell(false)}/></>);
+  if (showTopic) return shell(<><Owl text={OWL.topic}/><Topic onBack={() => setShowTopic(false)}/></>);
+  if (showR) return shell(<Results as={as} at={at} ba={ba} analysis={<MyAnalysis stats={topicStats(ba, id => bk[id], at)} note={note}/>} onBack={() => setShowR(false)}/>);
+  if (showT) return shell(<Trainer uid={uid} prof={prof} onBack={() => { setShowT(false); refresh(); }}/>);
+  if (showD) return shell(<Diary uid={uid} as={as} at={at} onBack={() => setShowD(false)}/>);
   const nErr = Object.values(at.reduce((m: any, t: any) => { if (Array.isArray(t.wrong) && (!m[t.assignmentId] || m[t.assignmentId].n < t.n)) m[t.assignmentId] = t; return m; }, {})).reduce((n: number, t: any) => n + t.wrong.length, 0);
-  return <div><h2><span style={{fontSize: '1.6rem'}}>{pf.av}</span> <span style={{color: pf.col}}>{prof.name}</span>, {prof.cls}</h2>
+  return shell(<div><h2><span style={{fontSize: '1.6rem'}}>{pf.av}</span> <span style={{color: pf.col}}>{prof.name}</span>, {prof.cls}</h2>
     <Owl text={OWL.home}/>
     <div className="card bar"><span>🏅 Значков: {badgesOf(at).filter(b => b.ok).length} из 4</span><button onClick={() => setShowR(true)}>📊 Мои результаты</button></div>
     {as.length > 0 && <h2>Задания от учителя</h2>}
@@ -98,7 +105,7 @@ function Student({uid, prof, reload}: any) {
     {!as.length && <div style={card}>Заданий от учителя пока нет. Ты можешь изучать готовую тему на карте.</div>}
     <StationMap onEco={() => setShowEc(true)} onHuman={() => setShowHu(true)} onAnimals={() => setShowAn(true)} onCell={() => setShowCell(true)} onTopic={() => setShowTopic(true)} onTrainer={() => setShowT(true)} onDiary={() => setShowD(true)}/>
     <Profile prof={pf} setProf={setPf}/>
-    {nErr > 0 && <div className="warn">Вопросов для разбора в дневнике ошибок: {nErr}</div>}</div>;
+    {nErr > 0 && <div className="warn">Вопросов для разбора в дневнике ошибок: {nErr}</div>}</div>);
 }
 
 const REASONS = ['Не знал(а) тему', 'Невнимательно прочитал(а) вопрос', 'Перепутал(а) понятия', 'Не понял(а) вопрос', 'Угадывал(а)', 'Другое'];

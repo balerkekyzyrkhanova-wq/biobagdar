@@ -209,10 +209,10 @@ export default function Heart3D({initial = 'mam'}: {initial?: string}) {
 
   const cur = model.steps[Math.min(step, model.steps.length - 1)];
   const go = (n: number) => { setMode('step'); setPlaying(true); setStep((n + model.steps.length) % model.steps.length); };
-  return <div className="card lab"><div className="tb"><b style={{flexBasis: '100%'}}>3D-модель сердца: путь крови</b>
+  return <div className="card lab l3"><div className="tb"><b style={{flexBasis: '100%'}}>3D-модель сердца: путь крови</b>
     {[['fish', '🐟 Рыба'], ['amph', '🐸 Земноводное'], ['rept', '🦎 Рептилия'], ['mam', '🦅🐆 Птица, млекопитающее']].map(([id, t]) => <button key={id} className={k === id ? '' : 's'} style={{minHeight: 38, padding: '4px 10px'}} onClick={() => { setK(id); setStep(0); }}>{t}</button>)}</div>
-    {err ? <div className="warn" style={{margin: 14}}>{err}</div> : <div ref={host} style={{height: 'min(64vh, 460px)', margin: '0 10px', background: 'radial-gradient(ellipse at 50% 35%, #2a1f3a 0%, #0b1220 78%)', borderRadius: 14}}/>}
-    <div style={{padding: '8px 14px 14px'}}>
+    {err ? <div className="warn" style={{margin: 14}}>{err}</div> : <div ref={host} className="lcv" style={{height: 'min(64vh, 460px)', margin: '0 10px', background: 'radial-gradient(ellipse at 50% 35%, #2a1f3a 0%, #0b1220 78%)', borderRadius: 14}}/>}
+    <div className="lpn" style={{padding: '8px 14px 14px'}}>
       <div style={{display: 'flex', flexWrap: 'wrap', gap: 4}}>
         <button onClick={() => { if (!playing) { setPlaying(true); setMode('flow'); } else setPlaying(false); }}>{playing ? '⏸ Пауза' : '▶ Запустить поток крови'}</button>
         <button className="s" onClick={() => go(step - 1)}>◀ Шаг назад</button><button className="s" onClick={() => go(step + 1)}>Шаг вперёд ▶</button>
