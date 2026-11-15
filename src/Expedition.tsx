@@ -15,6 +15,10 @@ const MemoryTest = lazy(() => import('./SleepArt').then(m => ({default: m.Memory
 const Composition = lazy(() => import('./ChemArt').then(m => ({default: m.Composition})));
 const TestLab = lazy(() => import('./ChemArt').then(m => ({default: m.TestLab})));
 const NPKLab = lazy(() => import('./ChemArt').then(m => ({default: m.NPKLab})));
+const DNA3D = lazy(() => import('./DNA3D'));
+const Complement = lazy(() => import('./DNA3D').then(m => ({default: m.Complement})));
+const Chromo = lazy(() => import('./DNA3D').then(m => ({default: m.Chromo})));
+const TraitSort = lazy(() => import('./DNA3D').then(m => ({default: m.TraitSort})));
 const Brain3D = lazy(() => import('./Brain3D'));
 const Map3D = lazy(() => import('./Map3D'));
 const Succ3D = lazy(() => import('./Succ3D'));
@@ -69,7 +73,7 @@ export const STATIONS: {desc: string; topics: TopicDef[]}[] = [
   {desc: 'Клетка, вещества, ДНК, бактерии и вирусы.', topics: [
     {id: 'cell', title: 'Клетка: растительная и животная', par: '§11–12', ready: true},
     {id: 'chem', title: 'Вода и вещества клетки, удобрения', par: '§13–15', ready: true},
-    {id: 'dna', title: 'ДНК, гены и хромосомы', par: '§48–51'},
+    {id: 'dna', title: 'ДНК, гены и хромосомы', par: '§48–51', ready: true},
     {id: 'micro', title: 'Бактерии и вирусы', par: '§60–63'}]},
   {desc: 'Транспорт, фотосинтез, дыхание, размножение растений.', topics: [
     {id: 'xylem', title: 'Транспорт веществ: ксилема и флоэма', par: '§16–20', ready: true},
@@ -112,7 +116,7 @@ export function StationPage({i, onBack, onOpen}: any) {
 
 export function TopicView({id, onBack}: any) {
   return id === 'cell' ? <CellTopic onBack={onBack}/> : id === 'xylem' ? <Topic onBack={onBack}/> : id === 'animals' ? <AnimalTopic part="classes" onBack={onBack}/> : id === 'heart' ? <AnimalTopic part="heart" onBack={onBack}/>
-    : id === 'human' ? <HumanTopic part="breath" onBack={onBack}/> : id === 'food' ? <HumanTopic part="food" onBack={onBack}/> : id === 'eco' ? <EcoTopic onBack={onBack}/> : id === 'photo' ? <PhotoTopic onBack={onBack}/> : id === 'ecofact' ? <FactorTopic onBack={onBack}/> : id === 'success' ? <SuccTopic onBack={onBack}/> : id === 'redbook' ? <RedTopic onBack={onBack}/> : id === 'nerve' ? <NerveTopic onBack={onBack}/> : id === 'reflex' ? <ReflexTopic onBack={onBack}/> : id === 'sleep' ? <SleepTopic onBack={onBack}/> : id === 'chem' ? <ChemTopic onBack={onBack}/> : null;
+    : id === 'human' ? <HumanTopic part="breath" onBack={onBack}/> : id === 'food' ? <HumanTopic part="food" onBack={onBack}/> : id === 'eco' ? <EcoTopic onBack={onBack}/> : id === 'photo' ? <PhotoTopic onBack={onBack}/> : id === 'ecofact' ? <FactorTopic onBack={onBack}/> : id === 'success' ? <SuccTopic onBack={onBack}/> : id === 'redbook' ? <RedTopic onBack={onBack}/> : id === 'nerve' ? <NerveTopic onBack={onBack}/> : id === 'reflex' ? <ReflexTopic onBack={onBack}/> : id === 'sleep' ? <SleepTopic onBack={onBack}/> : id === 'chem' ? <ChemTopic onBack={onBack}/> : id === 'dna' ? <DnaTopic onBack={onBack}/> : null;
 }
 
 const PI: any = {
@@ -214,6 +218,7 @@ export const OWL: any = {
   reflex: 'Запусти рефлекс и проследи пять звеньев дуги. Потом выработай у собаки условный рефлекс на звонок, как в опыте Павлова.',
   sleep: 'Посмотри, как меняется сон за ночь, собери свой режим дня и проверь, сколько цифр удерживает твоя память.',
   chem: 'Проведи опыты в виртуальной лаборатории: найди крахмал, жир, белок, воду и соли. Потом посмотри, что будет с растением без азота, фосфора или калия.',
+  dna: 'Раскрути спираль в лесенку и нажимай на ступеньки. Найди правило, по которому соединяются основания, и дострой вторую цепь сам.',
   diary: 'Ошибка — это подсказка, что повторить. Выбери причину честно, так легче не повторять её.',
 };
 
@@ -543,5 +548,22 @@ export function ChemTopic({onBack}: any) {
     <div className="card"><h3>Ключевые термины</h3><b>Макроэлементы</b> — элементы, которых в организме много (O, C, H, N и другие). <b>Микроэлементы</b> — нужны в очень малых количествах (железо, йод, цинк). <b>Органические вещества</b> — белки, жиры, углеводы, нуклеиновые кислоты. <b>Неорганические вещества</b> — вода и минеральные соли. <b>Удобрения</b> — вещества, которые вносят в почву для питания растений.
       <h3>Типичные ошибки</h3>Считать, что йод окрашивает сахар или белок (он окрашивает крахмал); думать, что зола — это органическое вещество (это минеральные соли); считать, что «чем больше удобрений, тем лучше».
       <h3>Итог</h3>Клетка состоит из воды, минеральных солей и органических веществ, а растению для роста нужны азот, фосфор и калий. Следующий шаг — задание от учителя.</div>
+    <button className="s" onClick={onBack}>← К темам станции</button></div>;
+}
+
+export function DnaTopic({onBack}: any) {
+  return <div><button className="s" onClick={onBack}>← К темам станции</button><h1>ДНК, гены и хромосомы</h1><span className="tag">Станция «Мир клетки»</span>
+    <div className="card"><h3>Что я узнаю</h3>Где и как записана наследственная информация, что такое ДНК, ген и хромосома, чем наследственные признаки отличаются от приобретённых и почему число хромосом не меняется из поколения в поколение.</div>
+    <Suspense fallback={<div className="card">Загружаю 3D-модель…</div>}><DNA3D/></Suspense>
+    <div className="card"><h3>Роль ДНК</h3>Дети похожи на родителей, потому что получают от них наследственную информацию. Она записана в молекулах <b>ДНК</b> (дезоксирибонуклеиновой кислоты). ДНК есть в каждой клетке: у растений, животных и грибов — в ядре, у бактерий — прямо в цитоплазме.
+      <h3>Как устроена ДНК</h3>ДНК — очень длинная молекула из двух цепей, закрученных в двойную спираль. Цепи соединены парами оснований. Оснований четыре: аденин (А), тимин (Т), гуанин (Г), цитозин (Ц). А соединяется только с Т, Г — только с Ц. Последовательность оснований — это «текст», в котором записано, как построить организм.
+      <h3>От ДНК к хромосоме</h3><b>Ген</b> — участок ДНК с информацией об одном белке, от которого зависит признак. <b>Хромосома</b> — одна длинная молекула ДНК, плотно намотанная на белки. В ней сотни и тысячи генов. Хромосомы хорошо видны в микроскоп только во время деления клетки. Порядок от крупного к мелкому: клетка → ядро → хромосома → ДНК → ген.</div>
+    <Suspense fallback={null}><Complement/><Chromo/></Suspense>
+    <div className="card"><h3>Размножение и число хромосом</h3>При <b>бесполом размножении</b> и росте клетки делятся так, что каждая дочерняя клетка получает точную копию всех хромосом (деление называется митозом). Потомки — копии родителя. При <b>половом размножении</b> сначала образуются половые клетки с половинным набором (такое деление называется мейозом), а при оплодотворении наборы отца и матери объединяются. Поэтому потомки сочетают признаки обоих родителей и отличаются друг от друга.
+      <h3>Наследственные и приобретённые признаки</h3><b>Наследственные</b> признаки записаны в генах и передаются потомкам: цвет глаз и волос, группа крови, форма носа. <b>Приобретённые</b> появляются в течение жизни под влиянием среды и по наследству не передаются: загар, шрамы, знания и умения, натренированные мышцы.</div>
+    <Suspense fallback={null}><TraitSort/></Suspense>
+    <div className="card"><h3>Ключевые термины</h3><b>ДНК</b> — молекула, хранящая наследственную информацию. <b>Ген</b> — участок ДНК, отвечающий за признак. <b>Хромосома</b> — ДНК, упакованная с белками. <b>Диплоидный набор (2n)</b> — двойной, в клетках тела. <b>Гаплоидный набор (n)</b> — одинарный, в половых клетках. <b>Зигота</b> — оплодотворённая яйцеклетка.
+      <h3>Типичные ошибки</h3>Считать, что в половых клетках человека 46 хромосом (их 23); думать, что приобретённые признаки передаются детям (сын спортсмена не рождается с натренированными мышцами); путать ген и хромосому (ген — маленький участок, хромосома содержит много генов).
+      <h3>Итог</h3>Наследственная информация записана в ДНК, разделена на гены и упакована в хромосомы. Следующий шаг — задание от учителя.</div>
     <button className="s" onClick={onBack}>← К темам станции</button></div>;
 }
