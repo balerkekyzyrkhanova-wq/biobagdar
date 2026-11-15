@@ -12,6 +12,9 @@ const ReflexSort = lazy(() => import('./ReflexArt').then(m => ({default: m.Refle
 const SleepNight = lazy(() => import('./SleepArt').then(m => ({default: m.SleepNight})));
 const DayPlan = lazy(() => import('./SleepArt').then(m => ({default: m.DayPlan})));
 const MemoryTest = lazy(() => import('./SleepArt').then(m => ({default: m.MemoryTest})));
+const Composition = lazy(() => import('./ChemArt').then(m => ({default: m.Composition})));
+const TestLab = lazy(() => import('./ChemArt').then(m => ({default: m.TestLab})));
+const NPKLab = lazy(() => import('./ChemArt').then(m => ({default: m.NPKLab})));
 const Brain3D = lazy(() => import('./Brain3D'));
 const Map3D = lazy(() => import('./Map3D'));
 const Succ3D = lazy(() => import('./Succ3D'));
@@ -65,7 +68,7 @@ export type TopicDef = {id: string; title: string; par: string; ready?: boolean;
 export const STATIONS: {desc: string; topics: TopicDef[]}[] = [
   {desc: 'Клетка, вещества, ДНК, бактерии и вирусы.', topics: [
     {id: 'cell', title: 'Клетка: растительная и животная', par: '§11–12', ready: true},
-    {id: 'chem', title: 'Вода и вещества клетки, удобрения', par: '§13–15'},
+    {id: 'chem', title: 'Вода и вещества клетки, удобрения', par: '§13–15', ready: true},
     {id: 'dna', title: 'ДНК, гены и хромосомы', par: '§48–51'},
     {id: 'micro', title: 'Бактерии и вирусы', par: '§60–63'}]},
   {desc: 'Транспорт, фотосинтез, дыхание, размножение растений.', topics: [
@@ -109,7 +112,7 @@ export function StationPage({i, onBack, onOpen}: any) {
 
 export function TopicView({id, onBack}: any) {
   return id === 'cell' ? <CellTopic onBack={onBack}/> : id === 'xylem' ? <Topic onBack={onBack}/> : id === 'animals' ? <AnimalTopic part="classes" onBack={onBack}/> : id === 'heart' ? <AnimalTopic part="heart" onBack={onBack}/>
-    : id === 'human' ? <HumanTopic part="breath" onBack={onBack}/> : id === 'food' ? <HumanTopic part="food" onBack={onBack}/> : id === 'eco' ? <EcoTopic onBack={onBack}/> : id === 'photo' ? <PhotoTopic onBack={onBack}/> : id === 'ecofact' ? <FactorTopic onBack={onBack}/> : id === 'success' ? <SuccTopic onBack={onBack}/> : id === 'redbook' ? <RedTopic onBack={onBack}/> : id === 'nerve' ? <NerveTopic onBack={onBack}/> : id === 'reflex' ? <ReflexTopic onBack={onBack}/> : id === 'sleep' ? <SleepTopic onBack={onBack}/> : null;
+    : id === 'human' ? <HumanTopic part="breath" onBack={onBack}/> : id === 'food' ? <HumanTopic part="food" onBack={onBack}/> : id === 'eco' ? <EcoTopic onBack={onBack}/> : id === 'photo' ? <PhotoTopic onBack={onBack}/> : id === 'ecofact' ? <FactorTopic onBack={onBack}/> : id === 'success' ? <SuccTopic onBack={onBack}/> : id === 'redbook' ? <RedTopic onBack={onBack}/> : id === 'nerve' ? <NerveTopic onBack={onBack}/> : id === 'reflex' ? <ReflexTopic onBack={onBack}/> : id === 'sleep' ? <SleepTopic onBack={onBack}/> : id === 'chem' ? <ChemTopic onBack={onBack}/> : null;
 }
 
 const PI: any = {
@@ -210,6 +213,7 @@ export const OWL: any = {
   nerve: 'Нажимай на части мозга и читай, за что они отвечают. Потом включи «Проверяю себя» и найди отделы без подсказок.',
   reflex: 'Запусти рефлекс и проследи пять звеньев дуги. Потом выработай у собаки условный рефлекс на звонок, как в опыте Павлова.',
   sleep: 'Посмотри, как меняется сон за ночь, собери свой режим дня и проверь, сколько цифр удерживает твоя память.',
+  chem: 'Проведи опыты в виртуальной лаборатории: найди крахмал, жир, белок, воду и соли. Потом посмотри, что будет с растением без азота, фосфора или калия.',
   diary: 'Ошибка — это подсказка, что повторить. Выбери причину честно, так легче не повторять её.',
 };
 
@@ -517,5 +521,27 @@ export function SleepTopic({onBack}: any) {
       <h3>Ключевые термины</h3><b>Биоритмы</b> — повторяющиеся изменения в работе организма. <b>Быстрый сон</b> — фаза со сновидениями и активным мозгом. <b>Медленный сон</b> — фаза глубокого отдыха. <b>Работоспособность</b> — способность выполнять работу с нужным качеством. <b>Память</b> — запоминание, хранение и воспроизведение информации.
       <h3>Типичные ошибки</h3>Считать, что во сне мозг «выключается» (он активно работает, особенно в быстром сне); думать, что недосып можно полностью возместить в выходные; считать, что учить ночью перед контрольной полезно (без сна выученное хуже закрепляется).
       <h3>Итог</h3>Сон, режим и правильные приёмы запоминания помогают учиться легче. Следующий шаг — задание от учителя.</div>
+    <button className="s" onClick={onBack}>← К темам станции</button></div>;
+}
+
+export function ChemTopic({onBack}: any) {
+  return <div><button className="s" onClick={onBack}>← К темам станции</button><h1>Вода и вещества клетки, удобрения</h1><span className="tag">Станция «Мир клетки»</span>
+    <div className="card"><h3>Что я узнаю</h3>Из каких химических элементов и веществ состоят живые организмы, зачем клетке вода, как обнаружить органические вещества опытом и какие элементы питания нужны растениям.</div>
+    <Suspense fallback={<div className="card">Загружаю…</div>}><Composition/></Suspense>
+    <div className="card"><h3>Вода в клетке</h3>Вода — главное вещество клетки. <b>Растворитель:</b> большинство веществ поступает в клетку и выводится из неё в растворённом виде. <b>Среда для реакций:</b> химические превращения в клетке идут в водной среде. <b>Транспорт:</b> с водой по организму переносятся питательные вещества. <b>Терморегуляция:</b> испаряясь (пот, испарение с листьев), вода охлаждает организм. <b>Упругость:</b> вода создаёт давление внутри клетки, поэтому листья и стебли упругие, а без воды вянут.
+      <h3>Неорганические и органические вещества</h3><b>Неорганические</b> есть и в живой, и в неживой природе: вода и минеральные соли. <b>Органические</b> образуются в живых организмах, и все они содержат углерод.
+      <div className="sc"><table style={{marginTop: 8}}><thead><tr><th>Вещество</th><th>Главная роль</th><th>Где много</th></tr></thead><tbody>
+        <tr><td>Белки</td><td>строительный материал клетки, ускоряют реакции (ферменты), перенос веществ, защита</td><td>мясо, рыба, яйца, бобовые</td></tr>
+        <tr><td>Углеводы</td><td>главный источник энергии; запас (крахмал), опора (целлюлоза клеточной стенки)</td><td>картофель, хлеб, фрукты</td></tr>
+        <tr><td>Жиры</td><td>запас энергии и воды, защита от холода</td><td>семена подсолнечника, орехи, сало</td></tr>
+        <tr><td>Нуклеиновые кислоты (ДНК)</td><td>хранение и передача наследственной информации</td><td>в ядре каждой клетки</td></tr></tbody></table></div></div>
+    <Suspense fallback={null}><TestLab/></Suspense>
+    <div className="card"><h3>Питание растений и удобрения</h3>Из почвы растение получает воду и растворённые в ней минеральные соли. Больше всего ему нужны три элемента: <b>азот, фосфор и калий</b>. Когда их в почве не хватает, вносят удобрения.
+      <h3>Виды удобрений</h3><b>Органические</b> — навоз, перегной, компост, торф, птичий помёт. Действуют медленно, улучшают структуру почвы. <b>Минеральные</b> — азотные, фосфорные, калийные и комплексные. Действуют быстро, вносятся строго по норме.
+      <h3>Почему важна норма</h3>Избыток удобрений накапливается в овощах (нитраты) и вреден для человека. Дожди смывают лишние удобрения в реки и озёра: вода «цветёт» от водорослей, в ней не хватает кислорода, и гибнет рыба.</div>
+    <Suspense fallback={null}><NPKLab/></Suspense>
+    <div className="card"><h3>Ключевые термины</h3><b>Макроэлементы</b> — элементы, которых в организме много (O, C, H, N и другие). <b>Микроэлементы</b> — нужны в очень малых количествах (железо, йод, цинк). <b>Органические вещества</b> — белки, жиры, углеводы, нуклеиновые кислоты. <b>Неорганические вещества</b> — вода и минеральные соли. <b>Удобрения</b> — вещества, которые вносят в почву для питания растений.
+      <h3>Типичные ошибки</h3>Считать, что йод окрашивает сахар или белок (он окрашивает крахмал); думать, что зола — это органическое вещество (это минеральные соли); считать, что «чем больше удобрений, тем лучше».
+      <h3>Итог</h3>Клетка состоит из воды, минеральных солей и органических веществ, а растению для роста нужны азот, фосфор и калий. Следующий шаг — задание от учителя.</div>
     <button className="s" onClick={onBack}>← К темам станции</button></div>;
 }
