@@ -125,3 +125,11 @@ img,svg,canvas{max-width:100%}
 .tp .tx{flex:1;min-width:0}.tp .tx b{display:block;line-height:1.25}
 .tp button{margin:0;flex:0 0 auto}
 .tp.off{opacity:.7}.tp.off .num{background:var(--bd);color:var(--mu)}
+/* рисунки с текстом рядом */
+.duo{display:grid;gap:12px;align-items:start}
+.duo .art svg{display:block;width:100%;max-width:380px;margin:0 auto}
+.duo p{margin:.4em 0}
+@media(min-width:800px){.duo{grid-template-columns:minmax(0,1fr) minmax(0,1.2fr)}}
+.npulse{transform-box:fill-box;transform-origin:center;animation:npl 1.8s ease-in-out infinite}
+@keyframes npl{50%{transform:scale(1.35);filter:brightness(1.25)}}
+@media(prefers-reduced-motion:reduce){.npulse{animation:none}}
