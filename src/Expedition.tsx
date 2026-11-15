@@ -19,6 +19,10 @@ const DNA3D = lazy(() => import('./DNA3D'));
 const Complement = lazy(() => import('./DNA3D').then(m => ({default: m.Complement})));
 const Chromo = lazy(() => import('./DNA3D').then(m => ({default: m.Chromo})));
 const TraitSort = lazy(() => import('./DNA3D').then(m => ({default: m.TraitSort})));
+const Micro3D = lazy(() => import('./Micro3D'));
+const Shapes = lazy(() => import('./Micro3D').then(m => ({default: m.Shapes})));
+const Growth = lazy(() => import('./Micro3D').then(m => ({default: m.Growth})));
+const VirusCycle = lazy(() => import('./Micro3D').then(m => ({default: m.VirusCycle})));
 const Brain3D = lazy(() => import('./Brain3D'));
 const Map3D = lazy(() => import('./Map3D'));
 const Succ3D = lazy(() => import('./Succ3D'));
@@ -74,7 +78,7 @@ export const STATIONS: {desc: string; topics: TopicDef[]}[] = [
     {id: 'cell', title: 'Клетка: растительная и животная', par: '§11–12', ready: true},
     {id: 'chem', title: 'Вода и вещества клетки, удобрения', par: '§13–15', ready: true},
     {id: 'dna', title: 'ДНК, гены и хромосомы', par: '§48–51', ready: true},
-    {id: 'micro', title: 'Бактерии и вирусы', par: '§60–63'}]},
+    {id: 'micro', title: 'Бактерии и вирусы', par: '§60–63', ready: true}]},
   {desc: 'Транспорт, фотосинтез, дыхание, размножение растений.', topics: [
     {id: 'xylem', title: 'Транспорт веществ: ксилема и флоэма', par: '§16–20', ready: true},
     {id: 'photo', title: 'Лист и фотосинтез', par: '§22–23, 33', ready: true},
@@ -116,7 +120,7 @@ export function StationPage({i, onBack, onOpen}: any) {
 
 export function TopicView({id, onBack}: any) {
   return id === 'cell' ? <CellTopic onBack={onBack}/> : id === 'xylem' ? <Topic onBack={onBack}/> : id === 'animals' ? <AnimalTopic part="classes" onBack={onBack}/> : id === 'heart' ? <AnimalTopic part="heart" onBack={onBack}/>
-    : id === 'human' ? <HumanTopic part="breath" onBack={onBack}/> : id === 'food' ? <HumanTopic part="food" onBack={onBack}/> : id === 'eco' ? <EcoTopic onBack={onBack}/> : id === 'photo' ? <PhotoTopic onBack={onBack}/> : id === 'ecofact' ? <FactorTopic onBack={onBack}/> : id === 'success' ? <SuccTopic onBack={onBack}/> : id === 'redbook' ? <RedTopic onBack={onBack}/> : id === 'nerve' ? <NerveTopic onBack={onBack}/> : id === 'reflex' ? <ReflexTopic onBack={onBack}/> : id === 'sleep' ? <SleepTopic onBack={onBack}/> : id === 'chem' ? <ChemTopic onBack={onBack}/> : id === 'dna' ? <DnaTopic onBack={onBack}/> : null;
+    : id === 'human' ? <HumanTopic part="breath" onBack={onBack}/> : id === 'food' ? <HumanTopic part="food" onBack={onBack}/> : id === 'eco' ? <EcoTopic onBack={onBack}/> : id === 'photo' ? <PhotoTopic onBack={onBack}/> : id === 'ecofact' ? <FactorTopic onBack={onBack}/> : id === 'success' ? <SuccTopic onBack={onBack}/> : id === 'redbook' ? <RedTopic onBack={onBack}/> : id === 'nerve' ? <NerveTopic onBack={onBack}/> : id === 'reflex' ? <ReflexTopic onBack={onBack}/> : id === 'sleep' ? <SleepTopic onBack={onBack}/> : id === 'chem' ? <ChemTopic onBack={onBack}/> : id === 'dna' ? <DnaTopic onBack={onBack}/> : id === 'micro' ? <MicroTopic onBack={onBack}/> : null;
 }
 
 const PI: any = {
@@ -219,6 +223,7 @@ export const OWL: any = {
   sleep: 'Посмотри, как меняется сон за ночь, собери свой режим дня и проверь, сколько цифр удерживает твоя память.',
   chem: 'Проведи опыты в виртуальной лаборатории: найди крахмал, жир, белок, воду и соли. Потом посмотри, что будет с растением без азота, фосфора или калия.',
   dna: 'Раскрути спираль в лесенку и нажимай на ступеньки. Найди правило, по которому соединяются основания, и дострой вторую цепь сам.',
+  micro: 'Рассмотри бактерию, вирус и бактериофаг в 3D. Потом проверь, как быстро бактерии размножаются в тепле и в холодильнике.',
   diary: 'Ошибка — это подсказка, что повторить. Выбери причину честно, так легче не повторять её.',
 };
 
@@ -565,5 +570,27 @@ export function DnaTopic({onBack}: any) {
     <div className="card"><h3>Ключевые термины</h3><b>ДНК</b> — молекула, хранящая наследственную информацию. <b>Ген</b> — участок ДНК, отвечающий за признак. <b>Хромосома</b> — ДНК, упакованная с белками. <b>Диплоидный набор (2n)</b> — двойной, в клетках тела. <b>Гаплоидный набор (n)</b> — одинарный, в половых клетках. <b>Зигота</b> — оплодотворённая яйцеклетка.
       <h3>Типичные ошибки</h3>Считать, что в половых клетках человека 46 хромосом (их 23); думать, что приобретённые признаки передаются детям (сын спортсмена не рождается с натренированными мышцами); путать ген и хромосому (ген — маленький участок, хромосома содержит много генов).
       <h3>Итог</h3>Наследственная информация записана в ДНК, разделена на гены и упакована в хромосомы. Следующий шаг — задание от учителя.</div>
+    <button className="s" onClick={onBack}>← К темам станции</button></div>;
+}
+
+export function MicroTopic({onBack}: any) {
+  return <div><button className="s" onClick={onBack}>← К темам станции</button><h1>Бактерии и вирусы</h1><span className="tag">Станция «Мир клетки»</span>
+    <div className="card"><h3>Что я узнаю</h3>Как устроены бактерии и какой они бывают формы, какую пользу и вред они приносят, как бороться с болезнетворными бактериями и чем вирусы отличаются от всех остальных организмов.</div>
+    <Suspense fallback={<div className="card">Загружаю 3D-модели…</div>}><Micro3D/></Suspense>
+    <div className="card"><h3>Бактерии</h3>Бактерии — самые древние и самые мелкие одноклеточные организмы. У них нет оформленного ядра, поэтому их называют <b>прокариотами</b>. Они живут везде: в почве, воде, воздухе, на коже и внутри организмов. При неблагоприятных условиях многие бактерии образуют <b>споры</b> — покрываются плотной оболочкой и годами переносят засуху, мороз и жару.</div>
+    <Suspense fallback={null}><Shapes/><Growth/></Suspense>
+    <div className="card"><h3>Значение бактерий</h3>
+      <div className="sc"><table><thead><tr><th>Польза</th><th>Вред</th></tr></thead><tbody>
+        <tr><td>Бактерии гниения и почвенные бактерии разлагают остатки организмов, образуя перегной и минеральные соли</td><td>Болезнетворные бактерии вызывают ангину, туберкулёз, холеру, чуму, столбняк, дизентерию</td></tr>
+        <tr><td>Клубеньковые бактерии на корнях бобовых усваивают азот из воздуха и обогащают им почву</td><td>Вызывают болезни растений и животных</td></tr>
+        <tr><td>Молочнокислые бактерии дают кефир, айран, йогурт, сыр, квашеную капусту</td><td>Портят продукты питания</td></tr>
+        <tr><td>Бактерии кишечника помогают пищеварению и образуют витамины</td><td>Разрушают книги, ткани, древесину</td></tr>
+        <tr><td>С помощью бактерий получают лекарства (инсулин), очищают сточные воды</td><td></td></tr></tbody></table></div>
+      <h3>Как бороться с болезнетворными бактериями</h3><b>Гигиена:</b> мыть руки, овощи и фрукты, пить кипячёную воду. <b>Кипячение и стерилизация:</b> высокая температура убивает бактерии, стерилизация — и их споры. <b>Пастеризация:</b> нагревание продуктов до 60–80 °C. <b>Холод, соление, сушка, копчение:</b> задерживают размножение бактерий в продуктах. <b>Дезинфекция:</b> обработка поверхностей и ран (йод, спирт, хлорсодержащие средства). <b>Прививки:</b> вырабатывают защиту заранее. <b>Антибиотики:</b> лекарства против бактерий; принимают только по назначению врача и полным курсом, иначе бактерии становятся к ним устойчивыми.</div>
+    <div className="card"><h3>Вирусы</h3>Вирусы — неклеточные формы жизни. Они не имеют клеточного строения: это нуклеиновая кислота (ДНК или РНК) в белковой оболочке — капсиде. Вирусы открыл в 1892 году Д. И. Ивановский, изучая болезнь табака. Вирусы вызывают грипп, корь, ветряную оспу, бешенство, COVID-19, у растений — мозаичные болезни. Защищают от них прививки, гигиена и крепкий иммунитет.</div>
+    <Suspense fallback={null}><VirusCycle/></Suspense>
+    <div className="card"><h3>Ключевые термины</h3><b>Прокариоты</b> — организмы без оформленного ядра. <b>Спора бактерии</b> — покоящаяся клетка в плотной оболочке для переживания неблагоприятных условий. <b>Патогенные (болезнетворные)</b> — вызывающие болезни. <b>Капсид</b> — белковая оболочка вируса. <b>Бактериофаг</b> — вирус бактерий. <b>Биотехнология</b> — использование живых организмов для получения продуктов и лекарств.
+      <h3>Типичные ошибки</h3>Считать вирус клеткой или самой мелкой бактерией; думать, что антибиотики лечат грипп; считать все бактерии вредными; путать споры бактерий (для выживания) со спорами грибов (для размножения).
+      <h3>Итог</h3>Бактерии — клетки без ядра, большинство их полезно. Вирусы — не клетки и размножаются только внутри чужих клеток. Следующий шаг — задание от учителя.</div>
     <button className="s" onClick={onBack}>← К темам станции</button></div>;
 }

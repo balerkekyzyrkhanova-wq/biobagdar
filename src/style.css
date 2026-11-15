@@ -138,3 +138,6 @@ img,svg,canvas{max-width:100%}
 .drip{animation:drp 1s ease-in infinite}
 @keyframes drp{0%{opacity:0;translate:0 -6px}30%{opacity:1}100%{opacity:0;translate:0 34px}}
 @media(prefers-reduced-motion:reduce){.ring,.drip{animation:none}}
+.shp{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:8px}
+.shc{text-align:center}.shc svg{width:96px;height:96px;display:block;margin:0 auto 4px}.shc b{display:block;font-size:.92rem;line-height:1.2}
+.shc .st{stroke:#12806f}
