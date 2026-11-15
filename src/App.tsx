@@ -13,6 +13,7 @@ import success from '../content/success.json';
 import redbook from '../content/redbook.json';
 import nerve from '../content/nerve.json';
 import reflex from '../content/reflex.json';
+import sleep from '../content/sleep.json';
 import {TeacherAnalytics, MyAnalysis} from './Analytics';
 import {topicStats} from './analytics';
 import {Ctx, Trainer, BankAttemptsList, vTitle, fmtDate} from './Olympiad';
@@ -256,7 +257,7 @@ function Teacher({uid}: any) {
   };
   useEffect(() => { refresh(); }, []);
   const act = async (fn: () => Promise<any>, ok: string) => { setMsg(''); try { await fn(); setMsg(ok); refresh(); } catch (e) { setMsg(msgOf(e)); } };
-  const SETS: any = {xylem, cell, animals, human, eco: ecokz, photo, ecofact, success, redbook, nerve, reflex};
+  const SETS: any = {xylem, cell, animals, human, eco: ecokz, photo, ecofact, success, redbook, nerve, reflex, sleep};
   const seed = async (tp: string) => {
     const have = await getDocs(query(collection(db, 'keys'), where('topicId', '==', tp))); const ex = new Set(have.docs.map(d => d.id));
     const b = writeBatch(db);
