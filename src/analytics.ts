@@ -1,6 +1,8 @@
 import topicsMap from '../content/topics.json';
 import {itemsOf, meta} from './bankdata';
 
+// первая буква id задания темы -> раздел анализа
+const PREFIX: Record<string, string> = {x: 'transport', c: 'cell', a: 'animals', h: 'human', n: 'human', rf: 'human', e: 'eco', f: 'eco', s: 'eco', k: 'eco', p: 'photo'};
 export const TOPICS: Record<string, {name: string; tip: string}> = {
   eco: {name: 'Экология и пищевые цепи', tip: 'Повтори пищевые цепи и трофические уровни (правило 10 %), роли продуцентов, консументов и редуцентов, сукцессию, влияние загрязнения и вселенцев. Перед ответом рисуй цепь питания и спрашивай себя: что изменится у звена до и после?'},
   animals: {name: 'Животные и их приспособления', tip: 'Повтори признаки основных групп (членистоногие, моллюски, рыбы, земноводные, пресмыкающиеся, птицы, млекопитающие). Составь таблицу: группа — покровы, дыхание, сердце, размножение — и найди приспособления к среде.'},
@@ -30,7 +32,7 @@ export function topicStats(bankAtt: any[], keyAns: (id: string) => number | unde
   }));
   const lx: any = {};
   xyl.filter(t => t.score != null && t.max).forEach(t => { const k = t.studentId + '|' + t.assignmentId; if (!lx[k] || t.n > lx[k].n) lx[k] = t; });
-  Object.values(lx).forEach((t: any) => { add((() => { const f = Object.keys(t.answers || {})[0] || ''; return f.startsWith('c') ? 'cell' : f.startsWith('a') ? 'animals' : (f.startsWith('h') || f.startsWith('n')) ? 'human' : (f.startsWith('e') || f.startsWith('f') || f.startsWith('s') || f.startsWith('k')) ? 'eco' : f.startsWith('p') ? 'photo' : 'transport'; })(), t.max, t.score, t.max, t.score); });
+  Object.values(lx).forEach((t: any) => { add((() => { const f = Object.keys(t.answers || {})[0] || ''; const m = f.match(/^[a-z]+/); return PREFIX[m ? m[0] : ''] || 'transport'; })(), t.max, t.score, t.max, t.score); });
   return Object.values(m).map((s: any) => ({...s, pct: s.max ? Math.round(s.got / s.max * 100) : 0})).sort((a: any, b: any) => a.pct - b.pct);
 }
 export const overall = (st: Stat[]) => { const g = st.reduce((s, x) => s + x.got, 0), m = st.reduce((s, x) => s + x.max, 0); return m ? Math.round(g / m * 100) : null; };

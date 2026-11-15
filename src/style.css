@@ -133,3 +133,8 @@ img,svg,canvas{max-width:100%}
 .npulse{transform-box:fill-box;transform-origin:center;animation:npl 1.8s ease-in-out infinite}
 @keyframes npl{50%{transform:scale(1.35);filter:brightness(1.25)}}
 @media(prefers-reduced-motion:reduce){.npulse{animation:none}}
+.ring{animation:rng .5s ease-in-out 3}
+@keyframes rng{25%{transform:rotate(14deg)}75%{transform:rotate(-14deg)}}
+.drip{animation:drp 1s ease-in infinite}
+@keyframes drp{0%{opacity:0;translate:0 -6px}30%{opacity:1}100%{opacity:0;translate:0 34px}}
+@media(prefers-reduced-motion:reduce){.ring,.drip{animation:none}}
