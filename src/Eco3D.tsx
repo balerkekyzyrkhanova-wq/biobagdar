@@ -1,6 +1,7 @@
 import {useEffect, useRef, useState} from 'react';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
+import {makeOrganism} from './EcoModels';
 import {RoomEnvironment} from 'three/examples/jsm/environments/RoomEnvironment.js';
 
 type Node = {name: string; role: string; em: string; y?: number; text: string};
@@ -40,13 +41,12 @@ const CONS: Record<string, string> = {
   'Консумент III порядка': 'Численность рыбы и нижних звеньев вырастает, пока им хватает корма. Затем корм заканчивается.',
 };
 
-function sprite(em: string, name: string, role: string) {
-  const c = document.createElement('canvas'); c.width = 320; c.height = 300; const x = c.getContext('2d')!;
-  x.textAlign = 'center'; x.textBaseline = 'middle'; x.font = '150px "Apple Color Emoji","Segoe UI Emoji","Noto Color Emoji",sans-serif'; x.fillText(em, 160, 90);
-  x.fillStyle = 'rgba(10,20,34,0.78)'; x.beginPath(); (x as any).roundRect(8, 170, 304, 120, 24); x.fill();
-  x.fillStyle = '#fff'; x.font = '600 32px system-ui,sans-serif'; x.fillText(name.length > 20 ? name.slice(0, 19) + '…' : name, 160, 208); x.fillStyle = '#ffd166'; x.font = '500 25px system-ui,sans-serif'; x.fillText(role, 160, 255);
+function sprite(_em: string, name: string, role: string) {
+  const c = document.createElement('canvas'); c.width = 360; c.height = 124; const x = c.getContext('2d')!;
+  x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillStyle = 'rgba(10,20,34,0.82)'; x.beginPath(); (x as any).roundRect(6, 6, 348, 112, 26); x.fill();
+  x.fillStyle = '#fff'; x.font = '700 34px system-ui,sans-serif'; x.fillText(name.replace(' (фитопланктон)', '').replace(' (зоопланктон)', '').replace(' (кийк)', ''), 180, 42, 330); x.fillStyle = '#ffd166'; x.font = '600 26px system-ui,sans-serif'; x.fillText(role, 180, 86, 330);
   const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace;
-  const s = new THREE.Sprite(new THREE.SpriteMaterial({map: t, transparent: true, depthTest: false})); s.scale.set(2.1, 1.97, 1); s.renderOrder = 20; return s;
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({map: t, transparent: true, depthTest: false})); s.scale.set(2.1, 0.72, 1); s.renderOrder = 20; return s;
 }
 const H = (k: string, x: number, z: number) => k === 'desert' ? 0.45 * Math.sin(x * 0.7 + z * 0.35) * Math.cos(z * 0.5) : k === 'steppe' ? 0.18 * Math.sin(x * 0.5) * Math.cos(z * 0.6) : k === 'mountain' ? 0.25 * Math.sin(x * 0.6) + Math.max(0, -z - 2.5) * 0.9 : -0.9 + 0.12 * Math.sin(x * 0.8 + z);
 
@@ -68,17 +68,19 @@ function build(k: string) {
     mk(new THREE.ConeGeometry(0.22, 0.9, 7), '#1f5a3a', 60, () => { const x = rnd(-7, 7), z = rnd(-3.8, 3.5); dec.position.set(x, H(k, x, z) + 0.4, z); dec.rotation.set(0, 0, 0); dec.scale.setScalar(rnd(0.7, 1.5)); }); }
   if (k === 'lake') mk(new THREE.CylinderGeometry(0.03, 0.03, 0.6, 5), '#6f8f4a', 50, () => { const x = rnd(-7, 7), z = rnd(4.4, 5.2); dec.position.set(x, 0.1, z); dec.rotation.set(rnd(-0.15, 0.15), 0, rnd(-0.15, 0.15)); dec.scale.setScalar(rnd(0.7, 1.4)); });
   // звенья
-  const all = [...E.chain, E.dec], n = all.length, pos: THREE.Vector3[] = [], sps: THREE.Sprite[] = [], rings: THREE.Mesh[] = [];
+  const all = [...E.chain, E.dec], n = all.length, pos: THREE.Vector3[] = [], sps: THREE.Sprite[] = [], mods: THREE.Group[] = [], rings: THREE.Mesh[] = [];
   all.forEach((nd, i) => { const x = -5.4 + i * (10.8 / (n - 1)), z = i % 2 ? 1.4 : 0.2; const y = nd.y !== undefined ? nd.y : (nd.role === 'Редуценты' ? H(k, x, z) : H(k, x, z)) + (nd.role === 'Редуценты' ? 0.1 : 0.2); const v = new THREE.Vector3(x, y, z); pos.push(v);
-    const s = sprite(nd.em, nd.name, nd.role); s.position.set(x, y + 1.2, z); root.add(s); sps.push(s);
+    const s = sprite(nd.em, nd.name, nd.role); s.position.set(x, y + 2.0, z); root.add(s); sps.push(s); const mo = makeOrganism(nd.name); mo.position.set(x, y, z); mo.rotation.y = -0.35 + (i % 2) * 0.5; mo.scale.setScalar(1.25); root.add(mo); mods.push(mo);
     const r = new THREE.Mesh(new THREE.RingGeometry(0.45, 0.6, 32), new THREE.MeshBasicMaterial({color: '#ffd166', transparent: true, opacity: 0.0, side: THREE.DoubleSide})); r.rotation.x = -Math.PI / 2; r.position.set(x, Math.max(y - 0.15, H(k, x, z) + 0.03), z); root.add(r); rings.push(r); });
   // стрелки энергии: i -> i+1 (последняя цепь→редуценты от всех)
   const arcs = all.slice(0, -1).map((_, i) => { const a = pos[i].clone().add(new THREE.Vector3(0, 0.9, 0)), b = pos[i + 1].clone().add(new THREE.Vector3(0, 0.9, 0)); const mid = a.clone().lerp(b, 0.5).add(new THREE.Vector3(0, 0.7, 0)); const cv = new THREE.QuadraticBezierCurve3(a, mid, b); const t = new THREE.Mesh(new THREE.TubeGeometry(cv, 24, 0.028, 8, false), new THREE.MeshBasicMaterial({color: i === n - 2 ? '#c98f4f' : '#ffffff', transparent: true, opacity: 0.45})); root.add(t); return {cv, t}; });
   const ball = new THREE.InstancedMesh(new THREE.SphereGeometry(0.06, 10, 8), new THREE.MeshBasicMaterial({color: '#fff2a8'}), arcs.length * 6); ball.frustumCulled = false; root.add(ball);
   const d = new THREE.Object3D(), pt = new THREE.Vector3();
-  const update = (time: number, st: {playing: boolean; step: number; mode: 'flow' | 'step'; removed: number}) => {
+  const update = (time: number, st: {playing: boolean; step: number; mode: 'flow' | 'step'; removed: number; ls?: number}) => {
     const act = st.mode === 'step' ? [st.step, st.step - 1] : [], hi = (i: number) => (st.mode === 'step' ? st.step === i : st.playing && Math.floor((time / 2) % n) === i);
-    sps.forEach((s, i) => { const gone = st.removed === i, on = hi(i); s.material.opacity = gone ? 0.15 : 1; const sc = (gone ? 0.6 : on ? 1.15 + 0.05 * Math.sin(time * 5) : 1); s.scale.set(2.1 * sc, 1.97 * sc, 1); s.position.y = pos[i].y + 1.2 + (gone ? 0 : on ? 0.08 * Math.sin(time * 4) : 0); (rings[i].material as THREE.MeshBasicMaterial).opacity = on ? 0.9 : 0; });
+    sps.forEach((s, i) => { const gone = st.removed === i, on = hi(i), ls = st.ls || 1; s.material.opacity = gone ? 0.25 : 1; const sc = ls * (on ? 1.12 : 1); s.scale.set(2.1 * sc, 0.72 * sc, 1); s.position.y = pos[i].y + 1.75 + 0.35 * ls; (rings[i].material as THREE.MeshBasicMaterial).opacity = on ? 0.9 : 0;
+      const mo = mods[i], want = gone ? 0.0001 : on ? 1.5 : 1.25; mo.scale.setScalar(mo.scale.x + (want - mo.scale.x) * 0.15); mo.position.y = pos[i].y + (on ? Math.abs(Math.sin(time * 4)) * 0.12 : 0);
+      mo.traverse((o: any) => { if (o.userData.wing) o.rotation.x = o.userData.wing * (0.25 + 0.35 * Math.sin(time * 5)); if (o.userData.swim) { o.rotation.y = Math.sin(time * 3) * 0.2; o.position.x = Math.sin(time * 1.2) * 0.15; } }); });
     arcs.forEach((a, i) => { const dead = st.removed === i || st.removed === i + 1; (a.t.material as THREE.MeshBasicMaterial).opacity = dead ? 0.08 : (st.mode === 'step' ? (st.step === i + 1 ? 0.95 : 0.3) : 0.5);
       for (let j = 0; j < 6; j++) { const idx = i * 6 + j; const show = !dead && (st.mode === 'flow' ? st.playing : st.step === i + 1); const u = ((j / 6) + time * 0.28) % 1; a.cv.getPoint(u, pt); d.position.copy(pt); d.scale.setScalar(show ? 1 : 0.0001); d.updateMatrix(); ball.setMatrixAt(idx, d.matrix); } });
     ball.instanceMatrix.needsUpdate = true;
@@ -91,7 +93,7 @@ function build(k: string) {
 export default function Eco3D() {
   const host = useRef<HTMLDivElement>(null);
   const [k, setK] = useState('steppe'), [playing, setPlaying] = useState(false), [step, setStep] = useState(0), [mode, setMode] = useState<'flow' | 'step'>('step'), [removed, setRemoved] = useState(-1), [err, setErr] = useState('');
-  const st = useRef<any>({}); st.current = {playing, step, mode, removed};
+  const st = useRef<any>({}), ls = useRef(1); st.current = {playing, step, mode, removed};
   const E = ECOS[k], all = [...E.chain, E.dec];
   useEffect(() => {
     const el = host.current; if (!el) return;
@@ -105,10 +107,10 @@ export default function Eco3D() {
     const sun = new THREE.DirectionalLight('#fff4d6', 2.2); sun.position.set(5, 8, 5); scene.add(sun); scene.add(new THREE.HemisphereLight('#dbeafe', '#8a7a5a', 0.7));
     const {root, update} = build(k); scene.add(root);
     const ctl = new OrbitControls(cam, r.domElement); ctl.enableDamping = true; ctl.maxPolarAngle = Math.PI * 0.47; ctl.minDistance = 6; ctl.maxDistance = 32; ctl.target.set(0, 0.6, 0.3);
-    const resize = () => { const w = el.clientWidth, h = el.clientHeight; r.setSize(w, h, false); cam.aspect = w / h; const dd = Math.max(11.5, 19.5 / (w / h)); cam.position.set(0, dd * 0.42, dd); cam.updateProjectionMatrix(); };
+    const resize = () => { const w = el.clientWidth, h = el.clientHeight; r.setSize(w, h, false); cam.aspect = w / h; const dd = Math.max(11.5, 19.5 / (w / h)); ls.current = Math.min(1.9, Math.max(1, dd / 13)); cam.position.set(0, dd * 0.42, dd); cam.updateProjectionMatrix(); };
     const ro = new ResizeObserver(resize); ro.observe(el); resize();
     const clock = new THREE.Clock(); let raf = 0, t = 0;
-    const loop = () => { raf = requestAnimationFrame(loop); const dt = Math.min(clock.getDelta(), 0.05); t += dt; update(t, st.current); ctl.update(); r.render(scene, cam); };
+    const loop = () => { raf = requestAnimationFrame(loop); const dt = Math.min(clock.getDelta(), 0.05); t += dt; update(t, {...st.current, ls: ls.current}); ctl.update(); r.render(scene, cam); };
     loop();
     return () => { cancelAnimationFrame(raf); ro.disconnect(); ctl.dispose(); scene.traverse((o: any) => { if (o.geometry) o.geometry.dispose(); if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach((x: any) => { if (x.map) x.map.dispose(); x.dispose(); }); }); pm.dispose(); r.dispose(); el.removeChild(r.domElement); };
   }, [k]);
