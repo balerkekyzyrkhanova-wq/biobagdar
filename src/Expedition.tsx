@@ -34,6 +34,10 @@ const TreeRings = lazy(() => import('./Flower3D').then(m => ({default: m.TreeRin
 const RespTypes = lazy(() => import('./AnimArt').then(m => ({default: m.RespTypes})));
 const ExcrTypes = lazy(() => import('./AnimArt').then(m => ({default: m.ExcrTypes})));
 const OrganQuiz = lazy(() => import('./AnimArt').then(m => ({default: m.OrganQuiz})));
+const LifeCycle = lazy(() => import('./MoveArt').then(m => ({default: m.LifeCycle})));
+const UniMove = lazy(() => import('./MoveArt').then(m => ({default: m.UniMove})));
+const MoveCards = lazy(() => import('./MoveArt').then(m => ({default: m.MoveCards})));
+const DevSort = lazy(() => import('./MoveArt').then(m => ({default: m.DevSort})));
 const Brain3D = lazy(() => import('./Brain3D'));
 const Map3D = lazy(() => import('./Map3D'));
 const Succ3D = lazy(() => import('./Succ3D'));
@@ -99,7 +103,7 @@ export const STATIONS: {desc: string; topics: TopicDef[]}[] = [
     {id: 'animals', title: 'Классификация и классы животных', par: '§8–10', ready: true},
     {id: 'heart', title: 'Кровеносная система и сердце', par: '§21', ready: true},
     {id: 'animresp', title: 'Дыхание и выделение у животных', par: '§26, 31', ready: true},
-    {id: 'animmove', title: 'Движение и развитие животных', par: '§34, 56–57'}]},
+    {id: 'animmove', title: 'Движение и развитие животных', par: '§34, 56–57', ready: true}]},
   {desc: 'Дыхание, нервная система, рефлексы, сон и память.', topics: [
     {id: 'human', title: 'Дыхание человека', par: '§27–28', ready: true},
     {id: 'nerve', title: 'Нервная система и головной мозг', par: '§35–39, 43', ready: true},
@@ -131,7 +135,7 @@ export function StationPage({i, onBack, onOpen}: any) {
 
 export function TopicView({id, onBack}: any) {
   return id === 'cell' ? <CellTopic onBack={onBack}/> : id === 'xylem' ? <Topic onBack={onBack}/> : id === 'animals' ? <AnimalTopic part="classes" onBack={onBack}/> : id === 'heart' ? <AnimalTopic part="heart" onBack={onBack}/>
-    : id === 'human' ? <HumanTopic part="breath" onBack={onBack}/> : id === 'food' ? <HumanTopic part="food" onBack={onBack}/> : id === 'eco' ? <EcoTopic onBack={onBack}/> : id === 'photo' ? <PhotoTopic onBack={onBack}/> : id === 'ecofact' ? <FactorTopic onBack={onBack}/> : id === 'success' ? <SuccTopic onBack={onBack}/> : id === 'redbook' ? <RedTopic onBack={onBack}/> : id === 'nerve' ? <NerveTopic onBack={onBack}/> : id === 'reflex' ? <ReflexTopic onBack={onBack}/> : id === 'sleep' ? <SleepTopic onBack={onBack}/> : id === 'chem' ? <ChemTopic onBack={onBack}/> : id === 'dna' ? <DnaTopic onBack={onBack}/> : id === 'micro' ? <MicroTopic onBack={onBack}/> : id === 'plantresp' ? <PlantRespTopic onBack={onBack}/> : id === 'plantrepro' ? <PlantReproTopic onBack={onBack}/> : id === 'animresp' ? <AnimRespTopic onBack={onBack}/> : null;
+    : id === 'human' ? <HumanTopic part="breath" onBack={onBack}/> : id === 'food' ? <HumanTopic part="food" onBack={onBack}/> : id === 'eco' ? <EcoTopic onBack={onBack}/> : id === 'photo' ? <PhotoTopic onBack={onBack}/> : id === 'ecofact' ? <FactorTopic onBack={onBack}/> : id === 'success' ? <SuccTopic onBack={onBack}/> : id === 'redbook' ? <RedTopic onBack={onBack}/> : id === 'nerve' ? <NerveTopic onBack={onBack}/> : id === 'reflex' ? <ReflexTopic onBack={onBack}/> : id === 'sleep' ? <SleepTopic onBack={onBack}/> : id === 'chem' ? <ChemTopic onBack={onBack}/> : id === 'dna' ? <DnaTopic onBack={onBack}/> : id === 'micro' ? <MicroTopic onBack={onBack}/> : id === 'plantresp' ? <PlantRespTopic onBack={onBack}/> : id === 'plantrepro' ? <PlantReproTopic onBack={onBack}/> : id === 'animresp' ? <AnimRespTopic onBack={onBack}/> : id === 'animmove' ? <AnimMoveTopic onBack={onBack}/> : null;
 }
 
 const PI: any = {
@@ -238,6 +242,7 @@ export const OWL: any = {
   plantresp: 'Переключай день и ночь и следи за стрелками газов. Потом проведи опыт со свечой и реши, какие семена дышат.',
   plantrepro: 'Сначала изучи части цветка, потом открой «Опыление и оплодотворение» и пройди шесть шагов по порядку.',
   animresp: 'Листай органы дыхания по порядку и следи за точками кислорода. Потом так же пройди органы выделения.',
+  animmove: 'Посмотри, как движутся одноклеточные, а потом сравни жизненные циклы бабочки, кузнечика, лягушки и курицы.',
   diary: 'Ошибка — это подсказка, что повторить. Выбери причину честно, так легче не повторять её.',
 };
 
@@ -667,5 +672,23 @@ export function AnimRespTopic({onBack}: any) {
     <div className="card"><h3>Ключевые термины</h3><b>Газообмен</b> — поглощение кислорода и выделение углекислого газа. <b>Жабры</b> — органы дыхания в воде. <b>Трахеи</b> — воздушные трубочки насекомых. <b>Дыхальца</b> — отверстия трахей. <b>Альвеолы</b> — лёгочные пузырьки. <b>Выделение</b> — удаление продуктов обмена веществ. <b>Почки</b> — органы, фильтрующие кровь.
       <h3>Типичные ошибки</h3>Считать, что рыбы дышат водой (они дышат кислородом, растворённым в воде); думать, что у насекомых кислород переносит кровь; путать органы выделения с органами пищеварения (непереваренные остатки пищи — это не выделение).
       <h3>Итог</h3>Чем сложнее и активнее животное, тем больше поверхность его органов дыхания и тем совершеннее органы выделения. Следующий шаг — задание от учителя.</div>
+    <button className="s" onClick={onBack}>← К темам станции</button></div>;
+}
+
+export function AnimMoveTopic({onBack}: any) {
+  return <div><button className="s" onClick={onBack}>← К темам станции</button><h1>Движение и развитие животных</h1><span className="tag">Станция «Мир животных»</span>
+    <div className="card"><h3>Что я узнаю</h3>Как и с помощью чего передвигаются разные животные, что такое индивидуальное развитие и чем прямое развитие отличается от непрямого.</div>
+    <div className="card"><h3>Зачем животным движение</h3>В отличие от растений, животные активно передвигаются: ищут пищу и воду, спасаются от врагов, находят партнёра и место для жизни. Для движения нужны <b>мышцы</b> и <b>опора</b> — скелет. Скелет бывает трёх видов: <b>гидроскелет</b> — жидкость в полости тела (черви), <b>наружный</b> — хитиновый покров (насекомые, раки, пауки) или раковина (моллюски), <b>внутренний</b> — кости и хрящи (позвоночные).</div>
+    <Suspense fallback={<div className="card">Загружаю…</div>}><UniMove/><MoveCards/></Suspense>
+    <div className="card"><h3>Индивидуальное развитие</h3><b>Онтогенез</b> — индивидуальное развитие организма от оплодотворённой яйцеклетки (зиготы) до смерти. В нём два периода: <b>зародышевый</b> — от зиготы до рождения или выхода из яйца, и <b>послезародышевый</b> — от рождения до смерти. Послезародышевое развитие бывает прямым и непрямым.
+      <div className="sc"><table style={{marginTop: 8}}><thead><tr><th>Признак</th><th>Прямое развитие</th><th>Непрямое развитие</th></tr></thead><tbody>
+        <tr><td>Детёныш</td><td>похож на взрослое животное</td><td>личинка не похожа на взрослое животное</td></tr><tr><td>Превращение</td><td>нет</td><td>есть (метаморфоз)</td></tr>
+        <tr><td>Питание</td><td>как у взрослых</td><td>личинка и взрослое животное часто едят разное</td></tr>
+        <tr><td>Примеры</td><td>пресмыкающиеся, птицы, млекопитающие, пауки</td><td>бабочки, жуки, мухи, кузнечики, лягушки</td></tr></tbody></table></div></div>
+    <Suspense fallback={null}><LifeCycle/><DevSort/></Suspense>
+    <div className="card"><h3>Зачем нужно превращение</h3>Личинка и взрослое животное живут в разных местах и едят разную пищу, поэтому не соперничают друг с другом. Личинка главным образом питается и растёт, а взрослое животное расселяется и размножается.
+      <h3>Ключевые термины</h3><b>Онтогенез</b> — индивидуальное развитие. <b>Личинка</b> — стадия, не похожая на взрослое животное. <b>Метаморфоз</b> — превращение личинки во взрослое животное. <b>Куколка</b> — неподвижная стадия у насекомых с полным превращением. <b>Линька</b> — сбрасывание старого покрова при росте.
+      <h3>Типичные ошибки</h3>Считать, что у кузнечика есть куколка (у него неполное превращение, три стадии); думать, что гусеница и бабочка — разные животные; считать развитие лягушки прямым; путать онтогенез (развитие одной особи) с эволюцией (развитием вида).
+      <h3>Итог</h3>Способ движения зависит от среды обитания и строения тела, а развитие бывает прямым и с превращением. Следующий шаг — задание от учителя.</div>
     <button className="s" onClick={onBack}>← К темам станции</button></div>;
 }

@@ -141,3 +141,9 @@ img,svg,canvas{max-width:100%}
 .shp{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-top:8px}
 .shc{text-align:center}.shc svg{width:96px;height:96px;display:block;margin:0 auto 4px}.shc b{display:block;font-size:.92rem;line-height:1.2}
 .shc .st{stroke:#12806f}
+.swim{animation:swm 5s ease-in-out infinite alternate}.swim.slow{animation-duration:9s}.swim.fast{animation-duration:2.6s}
+@keyframes swm{from{transform:translateX(-46px)}to{transform:translateX(46px)}}
+.cil{animation:cl .35s ease-in-out infinite alternate}
+@keyframes cl{from{transform:rotate(-28deg)}to{transform:rotate(28deg)}}
+@media(prefers-reduced-motion:reduce){.swim,.cil{animation:none}}
+.part:focus:not(:focus-visible){outline:none}.shp button{overflow-wrap:anywhere}
