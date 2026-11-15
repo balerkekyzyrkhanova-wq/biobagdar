@@ -8,6 +8,7 @@ import animals from '../content/animals.json';
 import human from '../content/human.json';
 import ecokz from '../content/ecokz.json';
 import photo from '../content/photo.json';
+import ecofact from '../content/ecofact.json';
 import {TeacherAnalytics, MyAnalysis} from './Analytics';
 import {topicStats} from './analytics';
 import {Ctx, Trainer, BankAttemptsList, vTitle, fmtDate} from './Olympiad';
@@ -251,7 +252,7 @@ function Teacher({uid}: any) {
   };
   useEffect(() => { refresh(); }, []);
   const act = async (fn: () => Promise<any>, ok: string) => { setMsg(''); try { await fn(); setMsg(ok); refresh(); } catch (e) { setMsg(msgOf(e)); } };
-  const SETS: any = {xylem, cell, animals, human, eco: ecokz, photo};
+  const SETS: any = {xylem, cell, animals, human, eco: ecokz, photo, ecofact};
   const seed = async (tp: string) => {
     const have = await getDocs(query(collection(db, 'keys'), where('topicId', '==', tp))); const ex = new Set(have.docs.map(d => d.id));
     const b = writeBatch(db);
@@ -284,7 +285,7 @@ function Teacher({uid}: any) {
   return <div><h2>Кабинет учителя</h2><div><b>{msg}</b></div>
     <div style={card}><b>Темы для назначения группе</b>
       {Object.keys(SETS).map(tp => <div key={tp} style={{marginTop: 8}}>{TOPIC_NAMES[tp]} ({SETS[tp].length} заданий)<div><button onClick={() => act(() => seed(tp), 'Задания загружены: ' + TOPIC_NAMES[tp])}>Загрузить задания</button> <button className="s" onClick={() => { if (confirm('Подтвердить ключи всех заданий этой темы? Ключи составлены Claude, делайте это после проверки.')) act(() => confirmTopic(tp), 'Ключи подтверждены: ' + TOPIC_NAMES[tp]); }}>Подтвердить ключи темы</button></div></div>)}
-      <div className="mu">Ключи тем «Клетка», «Животные», «Организм человека», «Экосистемы» и «Лист и фотосинтез» составлены Claude и пока не подтверждены: в контрольном режиме тему можно назначить только после подтверждения.</div></div>
+      <div className="mu">Ключи всех тем, кроме «Ксилема и флоэма», составлены Claude и пока не подтверждены: в контрольном режиме тему можно назначить только после подтверждения.</div></div>
     <BankAdmin/>
     <BankResults/>
     <TeacherAnalytics uid={uid}/>
