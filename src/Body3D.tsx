@@ -2,6 +2,7 @@ import {useEffect, useRef, useState} from 'react';
 import * as THREE from 'three';
 import {OrbitControls} from 'three/examples/jsm/controls/OrbitControls.js';
 import {GLTFLoader} from 'three/examples/jsm/loaders/GLTFLoader.js';
+import {mergeVertices} from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 
 type Part = {n: string; c: string; t: string};
 const P: Record<string, Part> = {
@@ -75,12 +76,14 @@ export default function Body3D({set = 'all'}: {set?: string}) {
       if (dead) return; const root = new THREE.Group(); const meshes: THREE.Mesh[] = []; g.scene.traverse((o: any) => { if (o.isMesh) meshes.push(o); });
       const skin = meshes.find(m => (m.name || m.parent?.name || '').startsWith('skin'))!; skin.geometry.computeBoundingBox(); const bb = skin.geometry.boundingBox!, size = bb.getSize(new THREE.Vector3()), ctr = bb.getCenter(new THREE.Vector3());
       const zUp = size.z > size.y, H = zUp ? size.z : size.y, k = 10 / H;
-      meshes.forEach(m => { const name = (m.name || m.parent?.name || '').replace(/_\d+$/, ''); const geo = m.geometry.clone(); geo.translate(-ctr.x, -ctr.y, -ctr.z); if (zUp) geo.rotateX(-Math.PI / 2); geo.scale(k, k, k); geo.computeVertexNormals(); geo.computeBoundingSphere();
+      meshes.forEach(m => { const name = (m.name || m.parent?.name || '').replace(/_\d+$/, ''); let geo = m.geometry.clone(); geo.translate(-ctr.x, -ctr.y, -ctr.z); if (zUp) geo.rotateX(-Math.PI / 2); geo.scale(k, k, k);
+        if (P[name]) { geo.deleteAttribute('normal'); geo.deleteAttribute('uv'); try { geo = mergeVertices(geo, 2e-4); } catch {} }
+        geo.computeVertexNormals(); geo.computeBoundingSphere();
         if (name === 'skin') { const o = new THREE.Mesh(geo, xray('#3fa9ff', 2.4, 0.5)); o.renderOrder = 6; root.add(o); return; }
         if (name === 'ribs' || name === 'spine') { const o = new THREE.Mesh(geo, xray('#9fd8ff', 1.8, 0.4)); o.renderOrder = 5; root.add(o); skel.push(o); return; }
         if (!P[name]) return;
         const c = geo.boundingSphere!.center.clone(); geo.translate(-c.x, -c.y, -c.z);
-        const mat = new THREE.MeshPhysicalMaterial({color: P[name].c, roughness: 0.42, clearcoat: 0.6, clearcoatRoughness: 0.3, sheen: 0.6, sheenColor: new THREE.Color('#ffd9d0'), emissive: new THREE.Color(P[name].c), emissiveIntensity: 0.18, transparent: true, opacity: 1});
+        const mat = new THREE.MeshPhysicalMaterial({color: P[name].c, roughness: 0.42, clearcoat: 0.6, clearcoatRoughness: 0.3, sheen: 0.6, sheenColor: new THREE.Color('#ffd9d0'), emissive: new THREE.Color(P[name].c), emissiveIntensity: 0.18, transparent: true, opacity: 1, side: THREE.DoubleSide});
         const o = new THREE.Mesh(geo, mat); o.position.copy(c); o.userData.k = name; o.renderOrder = 10; root.add(o); organs[name] = {m: o, mat, c, r: geo.boundingSphere!.radius, s: 1, base: c.clone()}; if (S.parts.includes(name)) picks.push(o); else o.visible = set === 'all'; });
       scene.add(root);
       const box = new THREE.Box3(); S.focus.forEach(n => organs[n] && box.expandByObject(organs[n].m)); const bs = box.getBoundingSphere(new THREE.Sphere());
@@ -96,14 +99,14 @@ export default function Body3D({set = 'all'}: {set?: string}) {
     const loop = () => { raf = requestAnimationFrame(loop); const dt = Math.min(clock.getDelta(), 0.05); t += dt; const s = st.current, act: string[] = s.step >= 0 ? S.steps[s.step].parts : s.sel ? [s.sel] : [];
       skel.forEach(o => { o.visible = s.bones; });
       const key = s.sel + '|' + s.step;
-      if (key !== lastSel) { lastSel = key; const o = s.sel && organs[s.sel]; if (o) { tgt.copy(o.base); dist = Math.max(o.r * 4.2, home.d * 0.42); lb.material.map?.dispose(); lb.material.map = label(P[s.sel].n); lb.material.needsUpdate = true; } else { tgt.copy(home.t); dist = home.d; } }
+      if (key !== lastSel) { lastSel = key; const o = s.sel && organs[s.sel]; if (o) { tgt.copy(o.base); dist = Math.max(o.r * 3.6, home.d * 0.34); lb.material.map?.dispose(); lb.material.map = label(P[s.sel].n); lb.material.needsUpdate = true; } else { tgt.copy(home.t); dist = home.d; } }
       if (s.step !== lastStep) { lastStep = s.step; stepT = 0; } stepT = Math.min(1, stepT + dt / 2.2);
       const breathing = set === 'breath' && s.play, e = breathing ? 0.5 * (1 - Math.cos(t * 1.6)) : 0;
       Object.entries(organs).forEach(([k, o]) => { const on = act.includes(k), any = act.length > 0, want = on ? 1.14 : 1; o.s += (want - o.s) * Math.min(1, dt * 7); let sc = o.s * (on ? 1 + 0.025 * Math.sin(t * 5) : 1), y = o.base.y;
         if (k === 'lungR' || k === 'lungL') sc *= 1 + 0.07 * e; if (k === 'diaphragm') y -= 0.16 * e; o.m.scale.setScalar(sc); o.m.position.y = y;
         o.mat.emissiveIntensity += ((on ? 0.55 + 0.25 * Math.sin(t * 5) : any ? 0.03 : 0.18) - o.mat.emissiveIntensity) * Math.min(1, dt * 8); o.mat.opacity += ((any && !on ? 0.16 : 1) - o.mat.opacity) * Math.min(1, dt * 6); o.mat.depthWrite = o.mat.opacity > 0.6; o.m.renderOrder = on ? 12 : 10;
         o.mat.color.set(P[k].c); if (on) o.mat.color.lerp(wc, 0.04 + 0.04 * Math.sin(t * 5)); });
-      const so = s.sel && organs[s.sel]; lb.visible = !!so; if (so) { const sc = cam.position.distanceTo(ctl.target) * 0.11; lb.scale.set(sc * 3.0, sc * 0.5, 1); lb.position.set(so.base.x, so.base.y + so.r * 1.25 + sc * 0.3, so.base.z + so.r); }
+      const so = s.sel && organs[s.sel]; lb.visible = !!so; if (so) { const sc = cam.position.distanceTo(ctl.target) * 0.085; lb.scale.set(sc * 3.0, sc * 0.5, 1); lb.position.set(so.base.x, so.base.y + so.r * 1.1 + sc * 0.26, so.base.z + so.r * 0.6); }
       // движение комка пищи / воздуха между органами по шагам
       bolus.visible = false; if (s.step >= 0 && s.play) { const cur = S.steps[s.step].parts[0], prev = s.step > 0 ? S.steps[s.step - 1].parts[0] : ''; a.copy(prev && organs[prev] ? organs[prev].base : top); bq.copy(cur && organs[cur] ? organs[cur].base : top); if (set === 'food' && (cur || s.step === 0)) { bolus.visible = true; bolus.position.lerpVectors(a, bq, stepT * stepT * (3 - 2 * stepT)); bolus.scale.setScalar((cam.position.distanceTo(ctl.target) / 8) * (1 + 0.2 * Math.sin(t * 8))); } }
       if (performance.now() - moved > 1500 || key !== lastSel) { ctl.target.lerp(tgt, Math.min(1, dt * 3)); dir.copy(cam.position).sub(ctl.target); const d0 = dir.length(); dir.multiplyScalar((d0 + (dist - d0) * Math.min(1, dt * 2.5)) / d0); if (Math.abs(d0 - dist) > 0.02 && performance.now() - moved > 1500) cam.position.copy(ctl.target).add(dir); }
