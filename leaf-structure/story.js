@@ -27,7 +27,7 @@ export const T = {
   formula: [46.0, 52.0],
   silence: [56.8, 57.5],
   snap: 57.5,               // layers snap shut (downbeat, bar 24)
-  endTitle: [63.6, DUR],
+  endTitle: [62.4, DUR],
 };
 
 // narration: start times; texts are in lines.json
