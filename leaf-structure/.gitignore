@@ -1,3 +1,4 @@
 stills/
 out/
 *.lock
+out_render.log

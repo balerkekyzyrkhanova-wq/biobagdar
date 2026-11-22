@@ -4,7 +4,7 @@ import json, sys, wave, io, numpy as np, soundfile as sf
 from piper import PiperVoice
 from piper.config import SynthesisConfig
 lines = json.load(open(sys.argv[1])); out = sys.argv[2]
-model = sys.argv[3] if len(sys.argv) > 3 else '/root/piper-ru/ru_RU-irina-medium.onnx'
+model = sys.argv[3] if len(sys.argv) > 3 else '/root/piper-ru/ru_RU-dmitri-medium.onnx'
 v = PiperVoice.load(model); durs = {}
 for L in lines:
     cfg = SynthesisConfig(length_scale=L.get('speed', 1.05), noise_scale=.6, noise_w_scale=.7)

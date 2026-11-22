@@ -1,0 +1,16 @@
+«Как устроен лист» — third-party assets
+
+Voice
+  Piper TTS (rhasspy/piper), MIT — https://github.com/rhasspy/piper
+  Voice model ru_RU-dmitri-medium (rhasspy/piper-voices on Hugging Face), see the model card for its licence:
+  https://huggingface.co/rhasspy/piper-voices/tree/main/ru/ru_RU/dmitri/medium
+  Speech check: faster-whisper (MIT) with OpenAI Whisper "small" weights (MIT)
+
+Fonts
+  Inter Tight — SIL Open Font License 1.1 (fonts/OFL.txt), via @fontsource/inter-tight
+
+Music and sound
+  Original score and all sound effects synthesised in code (mix.py); no samples.
+
+Picture
+  Everything drawn in code with three.js (MIT). No images, footage or generated imagery.
