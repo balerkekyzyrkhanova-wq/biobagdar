@@ -1,0 +1,6 @@
+Лист в горячей воде — третьи стороны
+
+Шрифт: Inter Tight (Rasmus Andersson и др.), SIL Open Font License 1.1 — fonts/OFL.txt; взят из пакета npm @fontsource/inter-tight.
+3D: three.js (MIT), включая RoomEnvironment и постобработку из examples/jsm.
+Музыка и все звуки: синтезированы кодом в mix.py (numpy), без сэмплов.
+Голоса нет.
