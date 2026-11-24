@@ -1,0 +1,459 @@
+<!doctype html>
+<html lang="kk">
+<head>
+<meta charset="utf-8">
+<title>Термодинамиканың бірінші заңы</title>
+<style>
+  :root{
+    --bg1:#0a1222; --bg2:#14254a;
+    --orange:#ff8a1f; --green:#2ee27a; --violet:#8b8cff; --cyan:#5cc8ff;
+    --text:#f2f6ff; --muted:#9fb0d0; --card:rgba(16,28,56,.82); --line:rgba(140,170,230,.22);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{width:1920px;height:1080px;overflow:hidden}
+  body{background:radial-gradient(1200px 900px at 32% 55%, #1a3160 0%, var(--bg2) 35%, var(--bg1) 100%);
+       font-family:"Inter","DejaVu Sans",sans-serif;color:var(--text)}
+  #gl{position:absolute;inset:0;width:1920px;height:1080px}
+  .abs{position:absolute}
+  /* header */
+  #header{left:64px;top:44px;display:flex;align-items:center;gap:22px}
+  .tag{font-size:20px;font-weight:600;letter-spacing:.12em;color:#cfe0ff;padding:8px 16px;border:1.5px solid var(--line);border-radius:999px;background:rgba(255,255,255,.04)}
+  #htitle{font-size:34px;font-weight:700;letter-spacing:-.01em}
+  #scene{right:64px;top:46px;font-size:24px;font-weight:600;padding:10px 22px;border-radius:12px;background:rgba(92,200,255,.12);border:1.5px solid rgba(92,200,255,.35);color:#cdeeff}
+  /* intro */
+  #intro{inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(8,14,28,.72)}
+  #intro .k{font-size:28px;letter-spacing:.3em;color:var(--cyan);font-weight:600}
+  #intro h1{font-size:92px;font-weight:800;margin:22px 0 18px;letter-spacing:-.02em;text-align:center}
+  #intro .f{font-size:56px;font-weight:700;color:#ffd9b0;font-family:"DejaVu Serif",serif;font-style:italic}
+  /* caption */
+  #caption{left:70px;width:1010px;bottom:54px;min-height:96px;padding:22px 30px;border-radius:18px;background:rgba(8,16,34,.78);border:1.5px solid var(--line);font-size:30px;line-height:1.35;font-weight:500}
+  #caption b{color:#fff}
+  /* panel */
+  #panel{left:1140px;top:124px;width:716px}
+  .card{background:var(--card);border:1.5px solid var(--line);border-radius:20px;padding:18px 28px;margin-bottom:16px;backdrop-filter:blur(4px)}
+  .card h3{font-size:22px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);margin-bottom:10px}
+  .srow{display:grid;grid-template-columns:200px 1fr 120px;align-items:center;gap:16px;height:42px}
+  .srow .lb{font-size:22px;color:#d9e4ff}
+  .track{height:16px;border-radius:9px;background:rgba(255,255,255,.08);overflow:hidden;position:relative}
+  .fill{height:100%;border-radius:9px;width:0}
+  .srow .vl{font-size:22px;font-weight:700;text-align:right;font-variant-numeric:tabular-nums}
+  .note{font-size:20px;color:var(--muted);margin-top:10px}
+  .note b{color:#e6efff}
+  /* energy */
+  .erow{position:relative;height:60px}
+  .ebar{position:absolute;top:0;height:60px;border-radius:12px;display:flex;align-items:center;justify-content:center;font-size:28px;font-weight:800;color:#13182a;white-space:nowrap;overflow:hidden}
+  .elab{display:flex;justify-content:space-between;font-size:20px;color:#d9e4ff;margin-top:12px}
+  .elab span b{font-size:22px}
+  #flow{display:block;width:100%;height:56px}
+  /* formula */
+  .formula{font-family:"DejaVu Serif",serif;font-style:italic;font-weight:700;text-align:center}
+  #fbig{font-size:70px;letter-spacing:.02em}
+  #fnum{font-size:36px;margin-top:2px;text-align:center;color:#e8efff;font-style:normal;font-family:"Inter",sans-serif;font-weight:700}
+  #fcheck{margin-top:8px;text-align:center;font-size:24px;color:var(--green);font-weight:600}
+  .cq,#caption b.cq,.note b.cq{color:var(--orange)} .cu,#caption b.cu{color:var(--violet)} .ca,#caption b.ca{color:var(--green)}
+  /* scene 2 card */
+  .r2{display:grid;grid-template-columns:270px 1fr 130px;gap:16px;align-items:center;height:58px}
+  .r2 .lb{font-size:24px;font-weight:700}
+  .r2 .lb small{display:block;font-size:17px;font-weight:500;color:var(--muted)}
+  .r2 .track{height:26px;border-radius:13px}
+  .r2 .fill{border-radius:13px}
+  .r2 .vl{font-size:26px;font-weight:800;text-align:right;font-variant-numeric:tabular-nums}
+  .f2{font-family:"DejaVu Serif",serif;font-style:italic;font-weight:700;font-size:40px;text-align:center;margin-top:14px}
+  .f2s{font-size:21px;text-align:center;color:var(--muted);margin-top:8px}
+  /* summary */
+  .sum li{font-size:26px;line-height:1.45;margin:8px 0 8px 26px}
+  /* 3D labels */
+  .lbl{position:absolute;transform:translate(-50%,-50%);font-size:22px;font-weight:700;padding:6px 14px;border-radius:10px;white-space:nowrap;background:rgba(8,16,34,.78);border:1.5px solid var(--line)}
+  .lbl.q{color:#ffd2a6;border-color:rgba(255,138,31,.6)}
+  .lbl.a{color:#bdfbd5;border-color:rgba(46,226,122,.6)}
+  .lbl.g{color:#d0ecff}
+</style>
+</head>
+<body>
+<canvas id="gl" width="1920" height="1080"></canvas>
+
+<!-- 3D labels -->
+<div id="lPiston" class="lbl g">Поршень</div>
+<div id="lGas" class="lbl g">Газ бөлшектері</div>
+<div id="lHeater" class="lbl q">Қыздырғыш</div>
+<div id="lQ" class="lbl q">Q — жылу</div>
+<div id="lA" class="lbl a">A — газдың жұмысы</div>
+<div id="lA2" class="lbl a">A′ — сыртқы күштің жұмысы</div>
+<div id="lIns" class="lbl g">Жылу оқшаулағыш қабат</div>
+
+<div id="header" class="abs"><span class="tag">ФИЗИКА · 10-СЫНЫП</span><span id="htitle">Термодинамиканың бірінші заңы</span></div>
+<div id="scene" class="abs">1-көрініс</div>
+
+<div id="panel" class="abs">
+  <div id="cState" class="card">
+    <h3>Газ күйі</h3>
+    <div class="srow"><span class="lb">Температура, T</span><div class="track"><div id="bT" class="fill" style="background:linear-gradient(90deg,#ffb347,#ff5a3c)"></div></div><span id="vT" class="vl">—</span></div>
+    <div class="srow"><span class="lb">Жылдамдық, ⟨v⟩</span><div class="track"><div id="bV" class="fill" style="background:linear-gradient(90deg,#5cc8ff,#9be3ff)"></div></div><span id="vV" class="vl">—</span></div>
+    <div class="srow"><span class="lb">Көлем, V</span><div class="track"><div id="bVol" class="fill" style="background:linear-gradient(90deg,#8b8cff,#b6b7ff)"></div></div><span id="vVol" class="vl">—</span></div>
+    <div class="note">Бөлшектер саны тұрақты: <b>N = 64</b> &nbsp;·&nbsp; <span id="qlive">Берілген жылу: <b class="cq">0 Дж</b></span></div>
+  </div>
+
+  <div id="cEnergy" class="card">
+    <h3>Энергия балансы</h3>
+    <div class="erow"><div id="eQ" class="ebar" style="left:0;width:100%;background:linear-gradient(90deg,#ffa24a,#ff7a12)">Q = 600 Дж</div></div>
+    <svg id="flow" viewBox="0 0 660 84" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="gU" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8a1f"/><stop offset="1" stop-color="#8b8cff"/></linearGradient>
+        <linearGradient id="gA" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ff8a1f"/><stop offset="1" stop-color="#2ee27a"/></linearGradient>
+      </defs>
+      <path id="pU" d="M0,0 L440,0 C440,42 434,42 434,84 L0,84 Z" fill="url(#gU)" opacity=".6"/>
+      <path id="pA" d="M440,0 L660,0 L660,84 L446,84 C446,42 440,42 440,0 Z" fill="url(#gA)" opacity=".6"/>
+    </svg>
+    <div class="erow">
+      <div id="eU" class="ebar" style="left:0;width:calc(66.67% - 6px);background:linear-gradient(90deg,#7a7bff,#a3a4ff)">ΔU = 400 Дж</div>
+      <div id="eA" class="ebar" style="left:calc(66.67% + 6px);width:calc(33.33% - 6px);background:linear-gradient(90deg,#22c96a,#5cf09a)">A = 200 Дж</div>
+    </div>
+    <div class="elab"><span><b class="cu">ΔU</b> — ішкі энергияның өзгерісі (⅔)</span><span><b class="ca">A</b> — газдың жұмысы (⅓)</span></div>
+  </div>
+
+  <div id="cFormula" class="card">
+    <h3>Термодинамиканың бірінші заңы</h3>
+    <div id="fbig" class="formula"><span class="cq">Q</span> = <span class="cu">ΔU</span> + <span class="ca">A</span></div>
+    <div id="fnum">600 Дж = 400 Дж + 200 Дж</div>
+    <div id="fcheck">✓ Энергияның сақталу заңы орындалады</div>
+  </div>
+
+  <div id="cAd" class="card">
+    <h3>Жылу алмасусыз сығу</h3>
+    <div class="r2"><span class="lb cq">Q<small>жылу мөлшері</small></span><div class="track"><div class="fill" style="width:0"></div></div><span class="vl cq">0 Дж</span></div>
+    <div class="r2"><span class="lb ca">A′<small>сыртқы күштің жұмысы</small></span><div class="track"><div id="b2A" class="fill" style="background:linear-gradient(90deg,#22c96a,#5cf09a)"></div></div><span id="v2A" class="vl ca">0 Дж</span></div>
+    <div class="r2"><span class="lb cu">ΔU<small>ішкі энергия өзгерісі</small></span><div class="track"><div id="b2U" class="fill" style="background:linear-gradient(90deg,#7a7bff,#a3a4ff)"></div></div><span id="v2U" class="vl cu">0 Дж</span></div>
+    <div id="f2a" class="f2"><span class="cq">Q</span> = <span class="cu">ΔU</span> + <span class="ca">A</span>, &nbsp; <span class="cq">Q</span> = 0</div>
+    <div id="f2b" class="f2"><span class="cu">ΔU</span> = −<span class="ca">A</span> = <span class="ca">A′</span></div>
+    <div id="f2c" class="f2s">Газдың жұмысы A = −150 Дж, сыртқы күштің жұмысы A′ = 150 Дж → ΔU = +150 Дж</div>
+  </div>
+
+  <div id="cSum" class="card">
+    <h3>Қорытынды</h3>
+    <div class="formula" style="font-size:64px;margin:4px 0 14px"><span class="cq">Q</span> = <span class="cu">ΔU</span> + <span class="ca">A</span></div>
+    <ul class="sum">
+      <li>Жылу берілгенде: <b class="cq">600 Дж</b> = <b class="cu">400 Дж</b> + <b class="ca">200 Дж</b></li>
+      <li>Жылу алмасусыз сығуда: <b class="cq">Q = 0</b>, <b class="cu">ΔU</b> = <b class="ca">A′</b></li>
+      <li>Ішкі энергия <b>жылу беру</b> және <b>жұмыс</b> арқылы өзгереді</li>
+    </ul>
+  </div>
+</div>
+
+<div id="caption" class="abs"></div>
+
+<div id="intro" class="abs">
+  <div class="k">ФИЗИКА · 10-СЫНЫП</div>
+  <h1>Термодинамиканың<br>бірінші заңы</h1>
+  <div class="f">Q = ΔU + A</div>
+</div>
+
+<script src="three.min.js"></script>
+<script>
+const W = 1920, H = 1080, FPS = 30, DURATION = 58;
+const clamp = (x,a=0,b=1)=>Math.min(b,Math.max(a,x));
+const ease = x => { x = clamp(x); return x<.5 ? 4*x*x*x : 1-Math.pow(-2*x+2,3)/2; };
+const seg = (t,a,b) => ease((t-a)/(b-a));
+const fade = (t,a,b,c=1e9,d=1e9) => Math.min(seg(t,a,b), 1-seg(t,c,d));
+const lerp = (a,b,k)=>a+(b-a)*k;
+
+// ---------- physics model (relative units) ----------
+// Isobaric heating: V ∝ T. Then adiabatic compression with Cv = 2R (γ = 1.5): T·V^0.5 = const.
+// Internal energy U ∝ T. U0 = 400 Дж (T0), heating +400 Дж → U1 = 800 Дж (T = 2T0),
+// compression +150 Дж → U2 = 950 Дж (T = 2.375 T0).
+const H0 = 1.8;                     // gas column height (∝ V) at start
+const T1 = 2.0, T2 = 2.375;
+const H1 = H0*T1;                   // 3.6 (isobaric)
+const H2 = H1*Math.pow(T1/T2, 2);   // adiabatic, γ-1 = 0.5
+const HEAT_A = 9, HEAT_B = 21, COMP_A = 41.5, COMP_B = 51;
+function gasState(t){
+  let Tn, h, pHeat = seg(t,HEAT_A,HEAT_B), pComp = seg(t,COMP_A,COMP_B);
+  if (t < COMP_A){ Tn = 1 + pHeat; h = H0*Tn; }
+  else { Tn = T1 + (T2-T1)*pComp; h = H1*Math.pow(T1/Tn,2); }
+  return {Tn, h, pHeat, pComp};
+}
+
+// ---------- three.js scene ----------
+const renderer = new THREE.WebGLRenderer({canvas:document.getElementById('gl'), antialias:true, alpha:true, preserveDrawingBuffer:true});
+renderer.setPixelRatio(1); renderer.setSize(W,H,false);
+renderer.setClearColor(0x000000,0);
+const scene = new THREE.Scene();
+const SHIFT = 820;
+const camera = new THREE.PerspectiveCamera(40, (W+SHIFT)/H, 0.1, 100);
+camera.setViewOffset(W+SHIFT, H, SHIFT, 0, W, H);
+
+scene.add(new THREE.HemisphereLight(0xcfe3ff, 0x1a2238, 1.1));
+const key = new THREE.DirectionalLight(0xffffff, 1.6); key.position.set(4,8,6); scene.add(key);
+const rim = new THREE.DirectionalLight(0x7fb6ff, 0.8); rim.position.set(-6,3,-4); scene.add(rim);
+const heatLight = new THREE.PointLight(0xff7a1a, 0, 6, 1.5); heatLight.position.set(0,-0.3,0); scene.add(heatLight);
+
+const R = 1.15, TUBE_H = 4.4;
+// table
+const table = new THREE.Mesh(new THREE.CylinderGeometry(2.6,2.6,0.12,64), new THREE.MeshStandardMaterial({color:0x1c2a4a, roughness:.8, metalness:.1}));
+table.position.y = -1.06; scene.add(table);
+// base plate
+const baseMat = new THREE.MeshStandardMaterial({color:0x8a94a8, metalness:.85, roughness:.3, emissive:0x000000});
+const base = new THREE.Mesh(new THREE.CylinderGeometry(R+0.16,R+0.16,0.22,64), baseMat);
+base.position.y = -0.11; scene.add(base);
+// heater
+const heater = new THREE.Group(); scene.add(heater);
+const heaterBodyMat = new THREE.MeshStandardMaterial({color:0x2d3446, metalness:.5, roughness:.5, transparent:true});
+const heaterBody = new THREE.Mesh(new THREE.CylinderGeometry(R+0.05,R+0.25,0.75,64), heaterBodyMat);
+heaterBody.position.y = -0.6; heater.add(heaterBody);
+const coilMat = new THREE.MeshStandardMaterial({color:0x5a2a10, emissive:0xff5a00, emissiveIntensity:0, metalness:.3, roughness:.4, transparent:true});
+for (let i=0;i<4;i++){
+  const c = new THREE.Mesh(new THREE.TorusGeometry(0.25+i*0.23,0.04,12,72), coilMat);
+  c.rotation.x = Math.PI/2; c.position.y = -0.24; heater.add(c);
+}
+// glass tube
+const glassMat = new THREE.MeshStandardMaterial({color:0xbfe6ff, transparent:true, opacity:0.16, roughness:.05, metalness:.1, side:THREE.DoubleSide, depthWrite:false});
+const glass = new THREE.Mesh(new THREE.CylinderGeometry(R+0.05,R+0.05,TUBE_H,72,1,true), glassMat);
+glass.position.y = TUBE_H/2; glass.renderOrder = 2; scene.add(glass);
+const rimMat = new THREE.MeshStandardMaterial({color:0xdff3ff, transparent:true, opacity:.55, metalness:.2, roughness:.2});
+[0.02, TUBE_H].forEach(y=>{ const r = new THREE.Mesh(new THREE.TorusGeometry(R+0.05,0.03,10,96), rimMat); r.rotation.x=Math.PI/2; r.position.y=y; scene.add(r); });
+// glass highlight strip
+const hl = new THREE.Mesh(new THREE.PlaneGeometry(0.12, TUBE_H*0.92), new THREE.MeshBasicMaterial({color:0xffffff, transparent:true, opacity:.12, depthWrite:false}));
+hl.position.set(-0.55, TUBE_H/2, R+0.04); hl.rotation.y = -0.45; /* highlight removed */
+// insulation jacket (scene 2)
+function hatchTexture(){
+  const c = document.createElement('canvas'); c.width = 256; c.height = 256; const g = c.getContext('2d');
+  g.fillStyle = '#c9d3e6'; g.fillRect(0,0,256,256);
+  g.strokeStyle = '#8f9bb5'; g.lineWidth = 10;
+  for (let i=-256;i<512;i+=40){ g.beginPath(); g.moveTo(i,0); g.lineTo(i+256,256); g.stroke(); }
+  const tx = new THREE.CanvasTexture(c); tx.wrapS = tx.wrapT = THREE.RepeatWrapping; tx.repeat.set(8,3); return tx;
+}
+const insMat = new THREE.MeshStandardMaterial({map:hatchTexture(), transparent:true, opacity:0, roughness:.9, side:THREE.DoubleSide, depthWrite:false});
+const ins = new THREE.Mesh(new THREE.CylinderGeometry(R+0.32,R+0.32,TUBE_H+0.15,72,1,true, Math.PI*0.3, Math.PI*1.4), insMat);
+ins.position.y = TUBE_H/2 - 0.05; ins.renderOrder = 3; scene.add(ins);
+const insBotMat = insMat.clone(); insBotMat.side = THREE.DoubleSide;
+const insBot = new THREE.Mesh(new THREE.CylinderGeometry(R+0.32,R+0.32,0.5,72), insBotMat);
+insBot.position.y = -0.47; scene.add(insBot);
+
+// piston
+const piston = new THREE.Group(); scene.add(piston);
+const pistonMat = new THREE.MeshStandardMaterial({color:0xc4cede, metalness:.35, roughness:.35});
+const pBody = new THREE.Mesh(new THREE.CylinderGeometry(R-0.005,R-0.005,0.24,72), pistonMat); pBody.position.y = 0.12; piston.add(pBody);
+const ringMat = new THREE.MeshStandardMaterial({color:0x39445c, metalness:.6, roughness:.4});
+[0.05,0.19].forEach(y=>{const r=new THREE.Mesh(new THREE.TorusGeometry(R-0.01,0.018,8,96), ringMat); r.rotation.x=Math.PI/2; r.position.y=y; piston.add(r);});
+const knob = new THREE.Mesh(new THREE.CylinderGeometry(0.16,0.2,0.16,32), pistonMat); knob.position.y = 0.32; piston.add(knob);
+
+// arrows
+function makeArrow(color, len, r){
+  const g = new THREE.Group();
+  const mat = new THREE.MeshBasicMaterial({color, transparent:true, opacity:1, depthTest:false});
+  const headL = r*3.2;
+  const shaft = new THREE.Mesh(new THREE.CylinderGeometry(r, r, len-headL, 20), mat); shaft.position.y = (len-headL)/2; g.add(shaft);
+  const head = new THREE.Mesh(new THREE.ConeGeometry(r*2.4, headL, 24), mat); head.position.y = len - headL/2; g.add(head);
+  g.renderOrder = 10; shaft.renderOrder = 10; head.renderOrder = 10;
+  g.userData.mat = mat; return g;
+}
+const heatArrows = [];
+const HA_POS = [[0,0],[0.62,0.1],[-0.6,0.15],[0.25,0.6],[-0.3,-0.58],[0.35,-0.55],[-0.35,0.58]];
+HA_POS.forEach((p,i)=>{ const a = makeArrow(0xff8a1f, 0.75, 0.055); a.position.set(p[0],0,p[1]); a.userData.phase = i/HA_POS.length; scene.add(a); heatArrows.push(a); });
+const workUp = makeArrow(0x2ee27a, 1.25, 0.09); scene.add(workUp);
+const workDown = makeArrow(0x2ee27a, 1.25, 0.09); workDown.rotation.z = Math.PI; scene.add(workDown);
+
+// particles
+const N = 64, PR = 0.085;
+let seed = 12345; const rnd = ()=>{ seed|=0; seed=seed+0x6D2B79F5|0; let t=Math.imul(seed^seed>>>15,1|seed); t=t+Math.imul(t^t>>>7,61|t)^t; return ((t^t>>>14)>>>0)/4294967296; };
+const P = [];
+for (let i=0;i<N;i++){
+  let x,z; do { x=(rnd()*2-1)*(R-PR); z=(rnd()*2-1)*(R-PR); } while (x*x+z*z > (R-PR-0.02)**2);
+  const y = PR + rnd()*(H0-2*PR);
+  const th = rnd()*Math.PI*2, ph = Math.acos(2*rnd()-1), s = 0.6+rnd()*0.8;
+  P.push({p:new THREE.Vector3(x,y,z), v:new THREE.Vector3(Math.sin(ph)*Math.cos(th)*s, Math.cos(ph)*s, Math.sin(ph)*Math.sin(th)*s)});
+}
+const V_BASE = 1.35; // rms speed at T0 (world units / s)
+function rescale(Tn){
+  let ke = 0; P.forEach(q=>ke+=q.v.lengthSq());
+  const k = Math.sqrt(N*V_BASE*V_BASE*Tn/ke); P.forEach(q=>q.v.multiplyScalar(k));
+}
+rescale(1);
+const pMesh = new THREE.InstancedMesh(new THREE.SphereGeometry(PR,20,14), new THREE.MeshStandardMaterial({color:0x5cc8ff, emissive:0x0d3a6e, roughness:.35, metalness:.1}), N);
+scene.add(pMesh);
+const tmpM = new THREE.Matrix4();
+let pistonY = H0, lastPistonY = H0;
+
+function stepSim(dt, Tn, hTop){
+  const SUB = 6, h = dt/SUB;
+  for (let s=0;s<SUB;s++){
+    const top = lerp(lastPistonY, hTop, (s+1)/SUB);
+    for (const q of P){
+      q.p.addScaledVector(q.v, h);
+      const r2 = q.p.x*q.p.x + q.p.z*q.p.z, lim = R-PR;
+      if (r2 > lim*lim){
+        const r = Math.sqrt(r2), nx = q.p.x/r, nz = q.p.z/r, vn = q.v.x*nx + q.v.z*nz;
+        if (vn > 0){ q.v.x -= 2*vn*nx; q.v.z -= 2*vn*nz; }
+        q.p.x = nx*lim; q.p.z = nz*lim;
+      }
+      if (q.p.y < PR){ q.p.y = PR; q.v.y = Math.abs(q.v.y); }
+      if (q.p.y > top-PR){ q.p.y = top-PR; if (q.v.y > 0) q.v.y = -q.v.y; }
+    }
+    // elastic collisions between identical particles
+    for (let i=0;i<N;i++) for (let j=i+1;j<N;j++){
+      const a=P[i], b=P[j];
+      const dx=b.p.x-a.p.x, dy=b.p.y-a.p.y, dz=b.p.z-a.p.z, d2=dx*dx+dy*dy+dz*dz;
+      if (d2 < 4*PR*PR && d2 > 1e-9){
+        const d=Math.sqrt(d2), nx=dx/d, ny=dy/d, nz=dz/d;
+        const rv=(b.v.x-a.v.x)*nx+(b.v.y-a.v.y)*ny+(b.v.z-a.v.z)*nz;
+        if (rv < 0){ a.v.x+=rv*nx; a.v.y+=rv*ny; a.v.z+=rv*nz; b.v.x-=rv*nx; b.v.y-=rv*ny; b.v.z-=rv*nz; }
+        const o=(2*PR-d)/2; a.p.x-=nx*o; a.p.y-=ny*o; a.p.z-=nz*o; b.p.x+=nx*o; b.p.y+=ny*o; b.p.z+=nz*o;
+      }
+    }
+  }
+  lastPistonY = hTop;
+  rescale(Tn); // mean kinetic energy follows temperature exactly
+}
+
+// ---------- DOM helpers ----------
+const $ = id => document.getElementById(id);
+const show = (id, o, dy=0) => { const e=$(id); e.style.opacity = o; e.style.display = o<=0.001 ? 'none' : ''; if (dy) e.style.transform = `translateY(${(1-o)*dy}px)`; };
+const CAPS = [
+  [4.0, 9.0, 'Мөлдір цилиндрде газ бар. Жоғарғы жағында <b>еркін қозғалатын поршень</b>.'],
+  [9.0, 13.5, 'Цилиндрдің төменгі жағынан газға <b class="cq">жылу беріледі (Q)</b>.'],
+  [13.5, 17.8, 'Бөлшектердің қозғалысы <b>жылдамдайды</b> — газдың <b>температурасы артады</b>.'],
+  [17.8, 22.5, 'Газ ұлғайып, поршеньді көтереді — <b class="ca">механикалық жұмыс (A)</b> атқарады.'],
+  [22.5, 31.0, 'Берілген жылудың бір бөлігі <b class="cu">ішкі энергияны</b> арттырады, қалғаны <b class="ca">жұмысқа</b> жұмсалады.'],
+  [31.0, 39.0, 'Газға берілген жылу ішкі энергияның өзгерісі мен газдың жұмысына тең.'],
+  [39.0, 44.5, 'Енді цилиндр <b>жылу оқшаулағышпен</b> қапталды: жылу алмасу жоқ, <b class="cq">Q = 0</b>.'],
+  [44.5, 51.0, 'Сыртқы күш поршеньді төмен итереді, газ сығылады. Бөлшектер жылдамдайды — <b class="cu">ішкі энергия</b> <b class="ca">жұмыс</b> есебінен артады.'],
+  [51.0, 60.0, 'Ішкі энергияны <b class="cq">жылу беру</b> арқылы да, <b class="ca">жұмыс атқару</b> арқылы да өзгертуге болады.'],
+];
+let lastCap = -1;
+function placeLabel(id, v3, o, dx=0, dy=0){
+  const e = $(id); if (o <= 0.001){ e.style.display='none'; return; }
+  const p = v3.clone().project(camera);
+  e.style.display=''; e.style.opacity=o;
+  e.style.left = ((p.x+1)/2*W + dx)+'px'; e.style.top = ((1-p.y)/2*H + dy)+'px';
+}
+
+// ---------- frame ----------
+function update(t, dt, draw=true){
+  const st = gasState(t);
+  pistonY = st.h;
+  stepSim(dt, st.Tn, st.h);
+
+  // camera: slow orbit
+  const ang = lerp(-0.32, 0.32, t/DURATION) + 0.04*Math.sin(t*0.4);
+  const dist = 12.0;
+  camera.position.set(Math.sin(ang)*dist, 4.1, Math.cos(ang)*dist);
+  camera.lookAt(0, 1.75, 0);
+  camera.updateMatrixWorld();
+
+  piston.position.y = st.h;
+  P.forEach((q,i)=>{ tmpM.makeTranslation(q.p.x,q.p.y,q.p.z); pMesh.setMatrixAt(i,tmpM); });
+  pMesh.instanceMatrix.needsUpdate = true;
+
+  // heater
+  const heat = fade(t, 8.6, 10.2, HEAT_B, HEAT_B+1.4);
+  coilMat.emissiveIntensity = 2.4*heat;
+  coilMat.color.setRGB(lerp(.35,1,heat), lerp(.17,.45,heat), lerp(.06,.1,heat));
+  heatLight.intensity = 6*heat;
+  baseMat.emissive.setRGB(0.35*heat, 0.12*heat, 0.02*heat);
+  const heaterVis = 1 - seg(t, 39.2, 41.0);
+  heaterBodyMat.opacity = heaterVis; coilMat.opacity = heaterVis; heater.visible = heaterVis > 0.01;
+  heatArrows.forEach(a=>{
+    const ph = ((t*0.62 + a.userData.phase) % 1);
+    a.position.y = lerp(-0.55, 1.05, ph);
+    a.userData.mat.opacity = heat * Math.sin(Math.PI*ph);
+    a.visible = heat > 0.01;
+  });
+
+  // insulation
+  const insO = seg(t, 39.3, 41.0);
+  insMat.opacity = 0.9*insO; insBotMat.opacity = 0.95*insO;
+  ins.visible = insBot.visible = insO > 0.01;
+
+  // work arrows
+  const wU = fade(t, 10.5, 12.0, 22.0, 23.0);
+  workUp.position.set(0, st.h + 0.42, 0);
+  workUp.scale.setScalar(0.9 + 0.1*Math.sin(t*5));
+  workUp.userData.mat.opacity = wU; workUp.visible = wU > 0.01;
+  const wD = fade(t, 41.0, 42.0, 51.2, 52.4);
+  const push = 0.06*Math.sin(t*6);
+  workDown.position.set(0, st.h + 0.42 + 1.25 + push, 0);
+  workDown.userData.mat.opacity = wD; workDown.visible = wD > 0.01;
+
+  if (!draw) return;
+  renderer.render(scene, camera);
+
+  // ---------- overlays ----------
+  const intro = 1 - seg(t, 3.0, 4.2);
+  show('intro', intro);
+  const ui = seg(t, 3.4, 4.6);
+  show('header', ui); show('scene', ui);
+  $('scene').textContent = t < 22.5 ? '1-көрініс: газды қыздыру' : t < 39 ? 'Энергия балансы' : t < 51 ? '2-көрініс: жылу алмасусыз сығу' : 'Қорытынды';
+
+  // caption
+  let ci = CAPS.findIndex(c => t >= c[0] && t < c[1]);
+  if (ci !== lastCap){ $('caption').innerHTML = ci>=0 ? CAPS[ci][2] : ''; lastCap = ci; }
+  let co = 0; if (ci>=0){ const c = CAPS[ci]; co = Math.min(seg(t,c[0],c[0]+0.5), 1-seg(t,c[1]-0.4,c[1])); if (ci===0) co = Math.min(co, ui); }
+  show('caption', co);
+
+  // labels
+  const lab0 = fade(t, 4.6, 5.4, 9.5, 10.2);
+  placeLabel('lPiston', new THREE.Vector3(R, st.h+0.12, 0), fade(t,4.6,5.4,13,13.8), 120, -10);
+  placeLabel('lGas', new THREE.Vector3(-R, st.h*0.45, 0), lab0, -150, 0);
+  placeLabel('lHeater', new THREE.Vector3(R+0.2, -0.6, 0), fade(t, 5.6, 6.4, 38.5, 39.4), 130, 0);
+  placeLabel('lQ', new THREE.Vector3(-R, 0.5, 0), fade(t, 9.6, 10.4, HEAT_B, HEAT_B+1), -120, 0);
+  placeLabel('lA', new THREE.Vector3(0.15, st.h+1.2, 0), wU, 200, 0);
+  placeLabel('lA2', new THREE.Vector3(0.15, st.h+1.5, 0), wD, 210, 0);
+  placeLabel('lIns', new THREE.Vector3(-R-0.32, 1.2, 0), fade(t, 40.4, 41.2, 47, 47.8), -175, 0);
+
+  // panel: state card
+  const sO = fade(t, 4.4, 5.2, 51, 51.8);
+  show('cState', sO, 20);
+  const tFrac = (st.Tn-0.5)/(2.6-0.5);
+  $('bT').style.width = (tFrac*100)+'%';
+  $('vT').textContent = st.Tn.toFixed(2)+'·T₀';
+  $('bV').style.width = (Math.sqrt(st.Tn)/Math.sqrt(2.6)*100)+'%';
+  $('vV').textContent = Math.sqrt(st.Tn).toFixed(2)+'·v₀';
+  $('bVol').style.width = (st.h/(H1*1.05)*100)+'%';
+  $('vVol').textContent = (st.h/H0).toFixed(2)+'·V₀';
+  if (t < 39) $('qlive').innerHTML = 'Берілген жылу: <b class="cq">'+Math.round(600*st.pHeat)+' Дж</b>';
+  else $('qlive').innerHTML = 'Жылу алмасу жоқ: <b class="cq">Q = 0</b>';
+
+  // energy card
+  const eO = fade(t, 22.5, 23.3, 38.6, 39.4);
+  show('cEnergy', eO, 24);
+  const qFill = seg(t, 23.0, 24.6);
+  $('eQ').style.clipPath = `inset(0 ${(1-qFill)*100}% 0 0 round 12px)`;
+  const split = seg(t, 25.0, 27.6);
+  $('flow').style.opacity = split;
+  $('flow').style.clipPath = `inset(0 0 ${(1-split)*100}% 0)`;
+  const uF = seg(t, 26.6, 28.2), aF = seg(t, 27.0, 28.6);
+  $('eU').style.clipPath = `inset(0 ${(1-uF)*100}% 0 0 round 12px)`;
+  $('eA').style.clipPath = `inset(0 ${(1-aF)*100}% 0 0 round 12px)`;
+  $('eQ').textContent = 'Q = '+Math.round(600*qFill)+' Дж';
+  $('eU').textContent = 'ΔU = '+Math.round(400*uF)+' Дж';
+  $('eA').textContent = 'A = '+Math.round(200*aF)+' Дж';
+  document.querySelector('#cEnergy .elab').style.opacity = seg(t, 28.2, 29.0);
+
+  // formula card
+  const fO = fade(t, 31.0, 31.9, 38.6, 39.4);
+  show('cFormula', fO, 24);
+  $('fbig').style.transform = `scale(${lerp(1.25,1,seg(t,31,32.2))})`;
+  show('fnum', seg(t, 33.0, 33.8));
+  show('fcheck', seg(t, 34.8, 35.6));
+
+  // adiabatic card
+  const aO = fade(t, 40.0, 40.8, 51.0, 51.8);
+  show('cAd', aO, 24);
+  const w2 = 150*st.pComp;
+  $('b2A').style.width = (w2/200*100)+'%'; $('b2U').style.width = (w2/200*100)+'%';
+  $('v2A').textContent = Math.round(w2)+' Дж'; $('v2U').textContent = '+'+Math.round(w2)+' Дж';
+  show('f2a', seg(t, 44.8, 45.6)); show('f2b', seg(t, 46.6, 47.4)); show('f2c', seg(t, 48.4, 49.2));
+
+  // summary
+  show('cSum', seg(t, 51.8, 52.8), 24);
+  if (t > 51.4){ $('panel').style.top = lerp(132, 300, seg(t,51.4,52.4))+'px'; } else $('panel').style.top = '132px';
+}
+
+let frame = -1;
+window.renderFrame = function(i){
+  while (frame < i){ frame++; update(frame/FPS, 1/FPS, frame===i); }
+};
+window.TOTAL_FRAMES = FPS*DURATION;
+window.ready = true;
+</script>
+</body>
+</html>
